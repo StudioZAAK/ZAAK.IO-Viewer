@@ -1,0 +1,167 @@
+@import url(http://fonts.googleapis.com/css?family=Gudea);
+
+html, body {
+  background-color: #000;
+  color: #eee;
+  margin: 0px;
+  padding: 0px;
+  position: fixed;
+  overflow: hidden;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: Gudea;
+  font-size: 12px;
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+}
+
+img.ri {
+  position: absolute;
+  max-width: 90%;
+  top: 10%;
+  left: -10%;
+  z-index:2;
+}
+
+img.ri:empty {
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+@media screen and (orientation: portrait) {
+  img.ri {max-width: 90%;}
+}
+
+@media screen and (orientation: landscape) {
+  img.ri {max-height: 90%;}
+}
+
+#loading_background { 
+  width: 100%; 
+  height: 100%; 
+  left: 0px; 
+  top: 0px; 
+  margin: 2em auto; 
+  text-align: center; 
+  position: absolute; 
+  font-size:22px; 
+  color:black; 
+  background-size: 100%;
+  margin: 0px;
+  overflow: hidden;
+  z-index: 1;
+  cursor:default;
+        
+  background: -webkit-radial-gradient(#fff, #e6e6e6); /* Safari 5.1 to 6.0 */
+  background: -o-radial-gradient(#fff, #e6e6e6); /* For Opera 11.6 to 12.0 */
+  background: -moz-radial-gradient(#fff, #e6e6e6); /* For Firefox 3.6 to 15 */
+  background: radial-gradient(#fff 50%, #e6e6e6); /* Standard syntax */
+
+}
+
+@media screen and (max-width: 25em) {
+
+  #loading_background { background:white !important;}
+  #preloader { top: 20% !important; }
+  
+}
+
+#preloader {}
+
+#loading { 
+
+  background-color:transparent;
+  color:#333;
+  height:2em auto;
+  position:absolute;
+  width:200px;
+  left:49.25%;
+  margin-left:-103px;
+  top: 55%;
+  padding:10px;
+  text-align: center;  
+  font-size:14px; 
+  z-index: 5;
+}
+
+.botLeft {
+      
+  //padding:15px;
+  position: absolute;
+  bottom: 10px;
+  left: 15px;      
+}
+
+.dialog {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 170%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+.dialog.visible {
+  display: flex;
+}
+.dialog .wrap {
+  padding: 30px 60px;
+  margin: 20px auto;
+  width: 60%;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 5px;
+}
+.dialog h1 {
+  margin: 0;
+}
+
+a, a:visited {
+  color: skyblue;
+}
+
+paper-fab {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+}
+
+#title {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  position: absolute;
+  top: 10%;
+  width: 100%;
+  font-size: 3em;
+  font-family: 'Dosis';
+  opacity: 1;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  margin: 0 0.5rem;
+}
+
+#title.hidden {
+  opacity: 0;
+}
+
+
+canvas {
+  cursor: -webkit-grab;
+}
+canvas:active {
+  cursor: -webkit-grabbing;
+}
