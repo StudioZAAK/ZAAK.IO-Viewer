@@ -17,6 +17,8 @@ var targetScaleBy = 3;
 
 var homeButton;
 var homeButtonDistance;
+// var homeButtonInitalPos = new THREE.Vector3( 0, 0, 0 );
+var isHome = true;
 
 var xhair, xhair2;
 
@@ -128,8 +130,6 @@ function initScene(json){
        homeButton = object;
        homeButtonDistance = object.position.y;
 
-       console.log(homeButton);
-       console.log(homeButtonDistance);
     }
   });
 
@@ -276,13 +276,14 @@ function hitObject(_hitObject, _jumpType, _pos){
   if(tween !== undefined)
     tween.stop();
 
-  var newPos = _hitObject.position;
+  if(_hitObject != null){
+    var newPos = _hitObject.position;
 
-  var _vector = new THREE.Vector3();
-  _vector.setFromMatrixPosition( _hitObject.matrixWorld );
+    var _vector = new THREE.Vector3();
+    _vector.setFromMatrixPosition( _hitObject.matrixWorld );
 
-  newPos = _vector;
-
+    newPos = _vector;
+  }
   if(_jumpType == "MoveTo"){
 
     tween = new TWEEN.Tween(camera.position).delay(0).to(newPos, 1500).onComplete(reactivate);
@@ -291,11 +292,21 @@ function hitObject(_hitObject, _jumpType, _pos){
     xhair.material.opacity = 0;
     xhair2.material.opacity = 0;
 
+    isHome = false;
+
   }else if(_jumpType == "JumpTo"){ 
+
     JumpTo(newPos);
+
+    isHome = false;
+
   }else if(_jumpType == "BackHome"){
 
     JumpTo(_pos);
+
+    
+
+    isHome = true;
   }
   
 
@@ -332,10 +343,27 @@ function animate(timestamp) {
   // Update VR headset position and apply to camera.
   controls.update();
 
+  // console.log(camera.position);
+  // console.log(homeButtonInitalPos);
+
   //UpdateHomebutton
   if(homeButton !== undefined){
-    homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
-    console.log(homeButton.position);
+
+    // console.log(homeButtonInitalPos);
+
+    if(isHome){
+
+      console.log("home");
+
+      homeButton.material.opacity = 0;
+
+    }else{
+
+      homeButton.material.opacity = 1;
+
+      homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
+    }
+
   }
 
   // Render the scene through the manager.
