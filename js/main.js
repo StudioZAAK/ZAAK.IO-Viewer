@@ -15,6 +15,9 @@ var tempObjectBaseScale;
 var saveScale;
 var targetScaleBy = 3;
 
+var homeButton;
+var homeButtonDistance;
+
 var xhair, xhair2;
 
 var _targetObject;
@@ -115,6 +118,21 @@ function initScene(json){
 
   // renderer.setClearColor(json.project.backgroundColor);
   
+  //Get jump to start
+  scene.traverse (function (object)
+  {
+    if (object.name == "BackHome")
+    {
+      console.log("he");
+
+       homeButton = object;
+       homeButtonDistance = object.position.y;
+
+       console.log(homeButton);
+       console.log(homeButtonDistance);
+    }
+  });
+
 };
 
 function loadFromJson(json) {
@@ -153,6 +171,7 @@ function raycasting(){
 
        if(_pointerName[0] == "Pointer" ){intersectsClean.push(intersects[iClean]);}
        if(_pointerName[0] == "MoveTo" ){intersectsClean.push(intersects[iClean]);}
+       if(_pointerName[0] == "BackHome" ){intersectsClean.push(intersects[iClean]);}
     }
 
     if(intersectsClean.length == 0){
@@ -208,7 +227,12 @@ function raycasting(){
           resetTarget(_targetObject);
 
 
-        } else {
+        } else if(_targetType == "BackHome"){
+
+          hitObject(null, "BackHome", new THREE.Vector3( 0, 0, 0 ));
+          return;
+
+        }else {
 
         var _targetName = intersectsClean[i].object.name.split('_')[1];
         _targetObject = scene.getObjectByName( "Target_" + _targetName );
@@ -247,7 +271,7 @@ function reactivate() {
   new TWEEN.Tween (xhair.material).to( {opacity:1 }, 500).start();
 }
 
-function hitObject(_hitObject, _jumpType){
+function hitObject(_hitObject, _jumpType, _pos){
 
   if(tween !== undefined)
     tween.stop();
@@ -267,15 +291,33 @@ function hitObject(_hitObject, _jumpType){
     xhair.material.opacity = 0;
     xhair2.material.opacity = 0;
 
-  }else  
-    tween = new TWEEN.Tween(camera.position).to(newPos, 10).onComplete(reactivate);
+  }else if(_jumpType == "JumpTo"){ 
+    JumpTo(newPos);
+  }else if(_jumpType == "BackHome"){
 
+    JumpTo(_pos);
+  }
   
 
   tween.start();
 
   raycastingActive = false;
-}   
+}  
+
+function MoveTo(_pos){
+
+  tween = new TWEEN.Tween(camera.position).delay(0).to(_pos, 1500).onComplete(reactivate);
+  tween.easing(TWEEN.Easing.Cubic.InOut);
+
+  xhair.material.opacity = 0;
+  xhair2.material.opacity = 0;
+} 
+
+function JumpTo(_pos){
+
+  tween = new TWEEN.Tween(camera.position).to(_pos, 10).onComplete(reactivate);
+
+}
 
 // Request animation frame loop function
 function animate(timestamp) {
@@ -289,6 +331,12 @@ function animate(timestamp) {
 
   // Update VR headset position and apply to camera.
   controls.update();
+
+  //UpdateHomebutton
+  if(homeButton !== undefined){
+    homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
+    console.log(homeButton.position);
+  }
 
   // Render the scene through the manager.
   manager.render(scene, camera, timestamp);
