@@ -126,7 +126,7 @@ function initScene(json){
   {
     if (object.name == "BackHome")
     {
-      console.log("he");
+      // console.log("he");
 
        homeButton = object;
        homeButtonDistance = object.position.y;
@@ -212,7 +212,7 @@ function raycasting(){
       if(lookAtTime > maxLookTime){
 
         lookAtTime = 0.0;
-        tempLookAtObject = null;
+        
 
         var _targetType = intersectsClean[i].object.name.split('_')[0];
 
@@ -235,12 +235,16 @@ function raycasting(){
           hitObject(null, "BackHome", new THREE.Vector3( 0, 0, 0 ));
           return;
 
-        }else {
+        }else if(_targetType == "Pointer"){
 
-        var _targetName = intersectsClean[i].object.name.split('_')[1];
-        _targetObject = scene.getObjectByName( "Target_" + _targetName );
+          var _targetName = intersectsClean[i].object.name.split('_')[1];
+          _targetObject = scene.getObjectByName( "Target_" + _targetName );
+
+          resetTarget(tempLookAtObject);
 
         }
+
+        tempLookAtObject = null;
 
       if(_targetObject != null)
         hitObject(_targetObject, _targetType);
@@ -279,14 +283,22 @@ function hitObject(_hitObject, _jumpType, _pos){
   if(tween !== undefined)
     tween.stop();
 
+  var newPos;
+
+  console.log(_jumpType);
+
   if(_hitObject != null){
-    var newPos = _hitObject.position;
+    newPos = _hitObject.position;
 
     var _vector = new THREE.Vector3();
     _vector.setFromMatrixPosition( _hitObject.matrixWorld );
 
     newPos = _vector;
+
+  }else{
+    newPos = _pos 
   }
+
   if(_jumpType == "MoveTo"){
 
     tween = new TWEEN.Tween(camera.position).delay(0).to(newPos, 1500).onComplete(reactivate);
@@ -297,15 +309,17 @@ function hitObject(_hitObject, _jumpType, _pos){
 
     isHome = false;
 
-  }else if(_jumpType == "JumpTo"){ 
+  }else if(_jumpType == "Pointer"){ 
 
-    JumpTo(newPos);
+    // JumpTo(newPos);
+    tween = new TWEEN.Tween(camera.position).to(newPos, 10).onComplete(reactivate);
 
     isHome = false;
 
   }else if(_jumpType == "BackHome"){
 
-    JumpTo(_pos);
+    // JumpTo(_pos);
+    tween = new TWEEN.Tween(camera.position).to(newPos, 10).onComplete(reactivate);
 
 
     // tempObjectBaseScale = new THREE.Vector3(tempLookAtObject.scale.x,tempLookAtObject.scale.y,tempLookAtObject.scale.z);
@@ -321,20 +335,20 @@ function hitObject(_hitObject, _jumpType, _pos){
   raycastingActive = false;
 }  
 
-function MoveTo(_pos){
+// function MoveTo(_pos){
 
-  tween = new TWEEN.Tween(camera.position).delay(0).to(_pos, 1500).onComplete(reactivate);
-  tween.easing(TWEEN.Easing.Cubic.InOut);
+//   tween = new TWEEN.Tween(camera.position).delay(0).to(_pos, 1500).onComplete(reactivate);
+//   tween.easing(TWEEN.Easing.Cubic.InOut);
 
-  xhair.material.opacity = 0;
-  xhair2.material.opacity = 0;
-} 
+//   xhair.material.opacity = 0;
+//   xhair2.material.opacity = 0;
+// } 
 
-function JumpTo(_pos){
+// function JumpTo(_pos){
 
-  tween = new TWEEN.Tween(camera.position).to(_pos, 10).onComplete(reactivate);
+//   tween = new TWEEN.Tween(camera.position).to(_pos, 10).onComplete(reactivate);
 
-}
+// }
 
 // Request animation frame loop function
 function animate(timestamp) {
@@ -353,7 +367,7 @@ function animate(timestamp) {
 
   //UpdateHomebutton
   if(homeButton !== undefined){
-    console.log(homeButton.scale);
+    // console.log(homeButton.scale);
     // console.log(homeButtonInitalPos);
     homeButton.material.opacity = 0.0;
     homeButton.scale = homeButtonBaseSize ;  
