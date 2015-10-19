@@ -13,11 +13,12 @@ var maxLookTime = 1.5;
 
 var tempObjectBaseScale;
 var saveScale;
-var targetScaleBy = 3;
+var targetScaleBy = 2.5;
 
 var homeButton;
 var homeButtonDistance;
-// var homeButtonInitalPos = new THREE.Vector3( 0, 0, 0 );
+var homeButtonBaseSize;
+var homeSize;
 var isHome = true;
 
 var xhair, xhair2;
@@ -129,6 +130,8 @@ function initScene(json){
 
        homeButton = object;
        homeButtonDistance = object.position.y;
+       homeButtonBaseSize = new THREE.Vector3( object.scale.x, object.scale.y, object.scale.z ); 
+       homeSize = homeButtonBaseSize;
 
     }
   });
@@ -304,7 +307,10 @@ function hitObject(_hitObject, _jumpType, _pos){
 
     JumpTo(_pos);
 
-    
+
+    // tempObjectBaseScale = new THREE.Vector3(tempLookAtObject.scale.x,tempLookAtObject.scale.y,tempLookAtObject.scale.z);
+    // var _size = homeButtonBaseSize;
+      
 
     isHome = true;
   }
@@ -343,25 +349,24 @@ function animate(timestamp) {
   // Update VR headset position and apply to camera.
   controls.update();
 
-  // console.log(camera.position);
-  // console.log(homeButtonInitalPos);
+
 
   //UpdateHomebutton
   if(homeButton !== undefined){
-
+    console.log(homeButton.scale);
     // console.log(homeButtonInitalPos);
+    homeButton.material.opacity = 0.0;
+    homeButton.scale = homeButtonBaseSize ;  
 
-    if(isHome){
-
-      console.log("home");
-
-      homeButton.material.opacity = 0;
-
-    }else{
+    if(!isHome){
 
       homeButton.material.opacity = 1;
+      // homeButton.visibility = true;
 
       homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
+    }else{
+      homeButton.material.opacity = 0.0;
+      homeButton.scale.set(homeSize.x, homeSize.y, homeSize.z);  
     }
 
   }
