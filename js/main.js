@@ -109,18 +109,24 @@ camera.add(xhair, xhair2);
 var loader = new THREE.ObjectLoader(preload);
 
 function loadFromFile(file) {
-
     loader.load(file, function(obj) {
         scene.add(obj);
         initScene(obj);
     });
 }
 
+function loadFromJson(json) {
+    var obj = loader.parse(json);
+    scene.add(obj);
+    initScene(obj);
+
+};
+
 //Create background color and fog once it's in the json
 function initScene(json){
 
   // renderer.setClearColor(json.project.backgroundColor);
-  
+
   //Get jump to start
   scene.traverse (function (object)
   {
@@ -130,16 +136,11 @@ function initScene(json){
 
        homeButton = object;
        homeButtonDistance = object.position.y;
-       homeButtonBaseSize = new THREE.Vector3( object.scale.x, object.scale.y, object.scale.z ); 
+       homeButtonBaseSize = new THREE.Vector3( object.scale.x, object.scale.y, object.scale.z );
        homeSize = homeButtonBaseSize;
 
     }
   });
-
-};
-
-function loadFromJson(json) {
-    scene.add(loader.parse(json));
 
 };
 
@@ -198,7 +199,7 @@ function raycasting(){
 
         tweenRunning = true;
 
-        var targetSize = new THREE.Vector3( tempObjectBaseScale.x*targetScaleBy, tempObjectBaseScale.y*targetScaleBy, tempObjectBaseScale.z*targetScaleBy ); 
+        var targetSize = new THREE.Vector3( tempObjectBaseScale.x*targetScaleBy, tempObjectBaseScale.y*targetScaleBy, tempObjectBaseScale.z*targetScaleBy );
 
         var tweenIn = new TWEEN.Tween( tempLookAtObject.scale )
           .to( { x: targetSize.x, y:targetSize.y, z:targetSize.z  }, maxLookTime*1000 )
@@ -212,7 +213,7 @@ function raycasting(){
       if(lookAtTime > maxLookTime){
 
         lookAtTime = 0.0;
-        
+
 
         var _targetType = intersectsClean[i].object.name.split('_')[0];
 
@@ -296,7 +297,7 @@ function hitObject(_hitObject, _jumpType, _pos){
     newPos = _vector;
 
   }else{
-    newPos = _pos 
+    newPos = _pos
   }
 
   if(_jumpType == "MoveTo"){
@@ -309,7 +310,7 @@ function hitObject(_hitObject, _jumpType, _pos){
 
     isHome = false;
 
-  }else if(_jumpType == "Pointer"){ 
+  }else if(_jumpType == "Pointer"){
 
     // JumpTo(newPos);
     tween = new TWEEN.Tween(camera.position).to(newPos, 10).onComplete(reactivate);
@@ -324,16 +325,16 @@ function hitObject(_hitObject, _jumpType, _pos){
 
     // tempObjectBaseScale = new THREE.Vector3(tempLookAtObject.scale.x,tempLookAtObject.scale.y,tempLookAtObject.scale.z);
     // var _size = homeButtonBaseSize;
-      
+
 
     isHome = true;
   }
-  
+
 
   tween.start();
 
   raycastingActive = false;
-}  
+}
 
 // function MoveTo(_pos){
 
@@ -342,7 +343,7 @@ function hitObject(_hitObject, _jumpType, _pos){
 
 //   xhair.material.opacity = 0;
 //   xhair2.material.opacity = 0;
-// } 
+// }
 
 // function JumpTo(_pos){
 
@@ -370,7 +371,7 @@ function animate(timestamp) {
     // console.log(homeButton.scale);
     // console.log(homeButtonInitalPos);
     homeButton.material.opacity = 0.0;
-    homeButton.scale = homeButtonBaseSize ;  
+    homeButton.scale = homeButtonBaseSize ;
 
     if(!isHome){
 
@@ -380,7 +381,7 @@ function animate(timestamp) {
       homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
     }else{
       homeButton.material.opacity = 0.0;
-      homeButton.scale.set(homeSize.x, homeSize.y, homeSize.z);  
+      homeButton.scale.set(homeSize.x, homeSize.y, homeSize.z);
     }
 
   }

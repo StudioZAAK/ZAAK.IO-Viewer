@@ -34,6 +34,7 @@
         <h1>EMBEDVR</h1>
 
         <iframe
+            id="viewer_from_file"
             height="380px"
             width="230px"
             allowfullscreen
@@ -42,6 +43,7 @@
         </iframe>
 
         <iframe
+            id="viewer_from_json"
             height="230px"
             width="380px"
             allowfullscreen
@@ -51,7 +53,17 @@
 
     </div>
 
+    <!-- test scene as json object -->
+    <script src="scenes/jumping.js"></script>
 
+    <script type="text/javascript">
+
+        setTimeout(function() {
+            document.getElementById('viewer_from_file').contentWindow.loadFromFile('scenes/jumping.json');
+            document.getElementById('viewer_from_json').contentWindow.loadFromJson(jumping);
+        }, 1000);
+
+    </script>
 
 
 </body>
