@@ -1,6 +1,5 @@
-var container, stats;
 
-var camera, scene;
+var container, camera, scene;
 var raycaster;
 var raycastingActive = true;
 
@@ -9,11 +8,11 @@ var clock;
 var tempDeactivated = null;
 var tempLookAtObject;
 var lookAtTime = 0.0;
-var maxLookTime = 1.5;
+var maxLookTime = 2;
 
 var tempObjectBaseScale;
 var saveScale;
-var targetScaleBy = 2.5;
+var targetScaleBy = 2;
 
 var homeButton;
 var homeButtonDistance;
@@ -21,7 +20,7 @@ var homeButtonBaseSize;
 var homeSize;
 var isHome = true;
 
-var xhair, xhair2;
+var xhair, xhair2, xhairLoader;
 
 var _targetObject;
 
@@ -31,6 +30,12 @@ var tweenRunning = false;
 var frameDelat;
 
 var fader, target;
+
+// crosshair circular loader attr.
+var radius = 8;
+var segments = 16;
+var thetaStart = 4.7; // 4.7 Unten Mitte
+var thetaLength = 1; // max is 6.3
 
 // Preloader
 var preload = new THREE.LoadingManager();
@@ -88,22 +93,31 @@ effect.setSize(window.innerWidth, window.innerHeight);
 // Create a VR manager helper to enter and exit VR mode.
 var manager = new WebVRManager(renderer, effect, {hideButton: false});
 
-// xhair - White Part // Create 3D xhair to help trigger targets
-var geometry = new THREE.SphereGeometry(.025, 12, 12);
-var material = new THREE.MeshBasicMaterial({wireframe:true, color: 0xffffff, transparent: true, opacity:1});
-xhair = new THREE.Mesh(geometry, material);
-xhair.position.z = -5;
-xhair.name = "xhair";
 
-// xhair - Black Part // Create 3D xhair to help trigger targets
-var geometry = new THREE.SphereGeometry(.015, 12, 12);
-var material = new THREE.MeshBasicMaterial({wireframe:false, color: 0x000000, transparent: true, opacity:1});
-xhair2 = new THREE.Mesh(geometry, material);
-xhair2.position.z = -4.5;
-xhair2.name = "xhair2";
+// Crosshair Stuff
+// Crosshair
 
-// Add xhair to Camera (Parent)
-camera.add(xhair, xhair2);
+var circleGeometry = new THREE.CircleGeometry( 2, 16 );
+var material = new THREE.MeshBasicMaterial({color: 0x333333, depthWrite: false, depthTest: false, transparent:true});
+xhair = new THREE.Mesh( circleGeometry, material );
+xhair.scale.set( .025, .025, .025 );
+xhair.position.z = -10;
+
+var circleGeometry = new THREE.CircleGeometry( 1.5, 16 );
+var material = new THREE.MeshBasicMaterial({color: 0xf2f2f2, depthWrite: true, depthTest: false, transparent:true});
+xhair2 = new THREE.Mesh( circleGeometry, material );
+xhair2.scale.set( .025, .025, .025 );
+xhair2.position.z = -10;
+//camera.add( xhair, xhair2 );
+
+// var circleLoader = new THREE.CircleGeometry( radius, segments, thetaStart, thetaLength  );
+// var material = new THREE.MeshBasicMaterial({color: 0xf2f2f2, depthWrite: true, depthTest: false, transparent:true, side:THREE.DoubleSide});
+// xhairLoader = new THREE.Mesh( circleLoader, material );
+// xhairLoader.scale.set( .025, .025, .025 );
+// xhairLoader.position.z = -15;
+// xhairLoader.rotation.y = Math.PI / 90;
+// camera.add( xhairLoader );
+
 
 // Loader
 var loader = new THREE.ObjectLoader(preload);
@@ -205,6 +219,16 @@ function raycasting(){
           .to( { x: targetSize.x, y:targetSize.y, z:targetSize.z  }, maxLookTime*1000 )
 
           tweenIn.start();
+
+        //PUT CROSSHAIR LOADER HERE ..
+        //--------------------------//
+
+        //thetaLength = 0;
+        //new TWEEN.Tween (thetaLength).delay(0).to(1, 2000).start();
+        //xhairLoader.visible = false;
+        //circleLoader.thetaLength = 5;
+        //thetaLength = 5;
+
       }
 
       lookAtTime += frameDelta;
@@ -275,6 +299,7 @@ function resetTarget(object){
 function reactivate() {
   raycastingActive = true;
 
+  //new TWEEN.Tween (xhairLoader.material).to( {opacity:1 }, 500).start();
   new TWEEN.Tween (xhair2.material).to( {opacity:1 }, 500).start();
   new TWEEN.Tween (xhair.material).to( {opacity:1 }, 500).start();
 }
@@ -307,6 +332,7 @@ function hitObject(_hitObject, _jumpType, _pos){
 
     xhair.material.opacity = 0;
     xhair2.material.opacity = 0;
+    //xhairLoader.material.opacity = 0;
 
     isHome = false;
 
@@ -336,21 +362,6 @@ function hitObject(_hitObject, _jumpType, _pos){
   raycastingActive = false;
 }
 
-// function MoveTo(_pos){
-
-//   tween = new TWEEN.Tween(camera.position).delay(0).to(_pos, 1500).onComplete(reactivate);
-//   tween.easing(TWEEN.Easing.Cubic.InOut);
-
-//   xhair.material.opacity = 0;
-//   xhair2.material.opacity = 0;
-// }
-
-// function JumpTo(_pos){
-
-//   tween = new TWEEN.Tween(camera.position).to(_pos, 10).onComplete(reactivate);
-
-// }
-
 // Request animation frame loop function
 function animate(timestamp) {
 
@@ -364,7 +375,7 @@ function animate(timestamp) {
   // Update VR headset position and apply to camera.
   controls.update();
 
-
+  camera.add( xhair, xhair2 );
 
   //UpdateHomebutton
   if(homeButton !== undefined){
@@ -374,10 +385,8 @@ function animate(timestamp) {
     homeButton.scale = homeButtonBaseSize ;
 
     if(!isHome){
-
       homeButton.material.opacity = 1;
       // homeButton.visibility = true;
-
       homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
     }else{
       homeButton.material.opacity = 0.0;
