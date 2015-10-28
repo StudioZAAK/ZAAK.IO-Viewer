@@ -12,37 +12,54 @@
 </head>
 <body>
 
-    <div class="botLeft">
-        <img src="img/logo.png" height="15px" width="auto">
-    </div>
+  <div class="botLeft">
+    <img src="img/logo.png" height="15px" width="auto">
+  </div>
 
-    <!--Preloading Stuff -->
-    <div id="loading_background"></div>
-    <div id="preloader"><img src="img/loader_white.gif" height="40px" width="auto" class="ri" ></div>
-    <div id="loading" >Loading ..</div>
-    <div id="botcenter">by ZAAK ZURICH BERLIN</div>
+  <!--Preloading Viewer Assets -->
+  <div id="loading_background"></div>
+  <div id="preloader"><img src="img/loader_white.gif" height="40px" width="auto" class="ri" ></div>
+  <div id="loading" >Loading ..</div>
+
+  <script>
+    // For debugging only. Never check this in as true!
+    CARDBOARD_DEBUG = false;
+
+    WebVRConfig = {
+
+      //WebVR-Polyfill Configuration
+      //----------------------------
+      // Forces availability of VR mode.
+      //FORCE_ENABLE_VR: true, // Default: false.
+      // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+      //K_FILTER: 0.98, // Default: 0.98.
+      // How far into the future to predict during fast motion.
+      PREDICTION_TIME_S: 0.001, // Default: 0.050s.
+
+      //WebVR-Boilerplate Configuration
+      //-------------------------------
+      // Forces distortion in VR mode.
+      //FORCE_DISTORTION: true, // Default: false.
+      // Override the distortion background color.
+      //DISTORTION_BGCOLOR: {x: 1, y: 0, z: 0, w: 1}, // Default: (0,0,0,1).
+    };
+  </script>
 
 
-    <script>
-        // TODO: For debugging only. Never check this in as true!
-        CARDBOARD_DEBUG = false;
-    </script>
+  <!-- Boilerplate --> 
+  <script src="js/third_party/three72dev.js"></script>
+  <script src="js/third_party/VRControls.js"></script>
+  <script src="js/third_party/VREffect.js"></script>
+  <script src="js/webvr-polyfill.js"></script>
+  <script src="js/webvr-manager.js"></script>
 
-
-    <script src="js/third_party/stats.min.js"></script>
-    <script src="js/third_party/tween.min_depr.js"></script>
-    <script src="js/third_party/three72dev.js"></script>
-    <script src="js/third_party/VRControls.js"></script>
-    <script src="js/third_party/VREffect.js"></script>
-    <script src="js/webvr-polyfill.js"></script>
-    <script src="js/webvr-manager.js"></script>
-    <script src="js/util.js"></script>
-    <script src="js/emitter.js"></script>
-    <script src="js/image-util.js"></script>
-    <script src="js/main.js"></script>
-    <!-- // <script src="js/photosphere-renderer.js"></script>
-    // <script src="js/scene-info.js"></script>
-    // <script src="js/scene-loader.js"></script>  -->
+  <!-- Third Party -->
+  <script src="js/third_party/tween.min.js"></script>
+  
+  <!-- Trash ? -->
+  
+  <!-- ZAAK.IO -->
+  <script src="js/main.js"></script>
 
 </body>
 </html>
