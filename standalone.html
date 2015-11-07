@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <title>Swisscom - Working Spaces</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- optional add a vignette and soft noise overlay -->
+  <!-- <div id="vignette" class="overlay vignette"></div>
+  <div id="noise" class="overlay noise"></div> -->
+
+  <!--Preloading Stuff -->
+  <div id="loading_background"></div>
+  <div id="preloader"><img src="img/loader_white.gif" height="auto" width="50px" class="ri"></div>
+  <div id="loading" >Connecting ..</div>
+
+</body>
+
+<script>
+  /*
+   * Debug parameters.
+   */
+  WebVRConfig = {
+    /**
+     * webvr-polyfill configuration
+     */
+
+    // Forces availability of VR mode.
+    //FORCE_ENABLE_VR: true, // Default: false.
+    // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+    //K_FILTER: 0.98, // Default: 0.98.
+    // How far into the future to predict during fast motion.
+    PREDICTION_TIME_S: 0.05, // Default: 0.050s.
+
+    /**
+     * webvr-boilerplate configuration
+     */
+    // Forces distortion in VR mode.
+    //FORCE_DISTORTION: true, // Default: false.
+    // Override the distortion background color.
+    //DISTORTION_BGCOLOR: {x: 1, y: 0, z: 0, w: 1}, // Default: (0,0,0,1).
+  };
+</script>
+
+<!-- Boilerplate --> 
+<script src="js/third_party/three73.js"></script>
+<script src="js/third_party/VRControls.js"></script>
+<script src="js/third_party/VREffect.js"></script>
+<script src="js/webvr-polyfill.js"></script>
+<script src="js/webvr-manager.js"></script>
+
+<!-- Third Party -->
+<script src="js/third_party/Tween.js"></script>
+<script src="js/third_party/stats.min.js"></script>
+
+<!-- ZAAK.IO -->
+<script src="js/standalone.js"></script>
+
+</html>
