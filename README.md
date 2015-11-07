@@ -4,7 +4,7 @@ The Viewer of http://zaak.io is build upon Boris Smus WebVR Boilerplate.
 https://github.com/borismus/webvr-boilerplate
 
 It has a lot of add-ons that work seamless with the scenes you can create on http://www.zaak.io/editor/.
-It has raycaster, a HUD with crosshair as well as three different navigation types.
+It has a preloader, a raycaster, a HUD with crosshair as well as three different navigation types.
 
 - MoveTo Navigation : Look at an object and move over there (Smooth Transition)
 - JumpTo Navigation : Look at an object and get teleported to another object you set in space (Direct Transition)
