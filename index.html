@@ -9,51 +9,62 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <style>
+
         body {
+            font-family: "Lucida Console", Monaco, monospace;
             margin: 0px;
-            //overflow: hidden;
-            background-color: transparent;
+            overflow-y: scroll;
         }
 
         .info {
-            font-family: "Lucida Console", Monaco, monospace;
+            font-size: 12px;
+            text-align: center;
             color:#f2f2f2;
-            text-align: left;
-            margin-top:0px;
-            padding:20px 20px 20px 40px;
             background-color: #333;
+            padding:10px 10px 10px 10px;
         }
 
     </style>
-
 </head>
 
 <body>
 
     <div class="info">
         <h1>EMBEDVR</h1>
-
+        <p>From File</p>
         <iframe
-            height="380px"
-            width="230px"
+            id="viewer_from_file"
+            height="200px"
+            width="340px"
             allowfullscreen
             src="viewer.html"
             style="border: 1px solid grey;">
         </iframe>
-
-        <iframe
-            height="230px"
-            width="380px"
-            allowfullscreen
-            src="viewer.html"
-            style="border: 1px solid grey;">
-        </iframe>
-
     </div>
 
+    <div class="info" style="padding-bottom:500px; margin-top:-20px;">
+        <p>From JSON</p>
+        <iframe
+            id="viewer_from_json"
+            height="200px"
+            width="340px"
+            allowfullscreen
+            src="viewer.html"
+            style="border: 1px solid grey;">
+        </iframe>
+    </div>
 
+    <!-- test scene as json object -->
+    <script src="scenes/jumping.js"></script>
 
+    <script type="text/javascript">
+
+        setTimeout(function() {
+            document.getElementById('viewer_from_file').contentWindow.loadFromFile('scenes/jumping_.json');
+            document.getElementById('viewer_from_json').contentWindow.loadFromJson(jumping);
+        }, 1000);
+
+    </script>
 
 </body>
-
 </html>

@@ -27,14 +27,24 @@ var tweenRunning = false;
 
 var frameDelta;
 
-var thetaLength = 1; // max (full circle )is 6.3
+var thetaLength = 1; // max is 6.3”
+
+var lake, Clouds, CloudsMaterial; 
+
+var stats;
+
+var rotationObject;
+
+var Pseudo;
+
+
 
 // Preloader
 var preload = new THREE.LoadingManager();
 
 preload.onProgress = function ( item, loaded, total ) {
     console.log( item, loaded, total );
-    document.getElementById( "loading" ).innerHTML = loaded + " of " + total + " <br> objects ";
+    document.getElementById( "loading" ).innerHTML = loaded + " / " + total;
 };
 
 preload.onLoad = function ( item, loaded, total ) {
@@ -47,11 +57,13 @@ preload.onLoad = function ( item, loaded, total ) {
           document.getElementById( "loading_background" ).style.display = "none";
           document.getElementById( "loading" ).style.display = "none";
           document.getElementById( "preloader" ).style.display = "none";
-          document.getElementById( "botcenter" ).style.display = "none";
       },500);
     }, 50);
 
+    //animate();
 };
+
+// resetTarget();
 
 
 //Setup three.js WebGL renderer
@@ -69,6 +81,7 @@ raycaster = new THREE.Raycaster();
 
 // Create a three.js scene.
 var scene = new THREE.Scene();
+//scene.fog = new THREE.FogExp2( 0xf2f2f2, 0.003 );
 
 // Create a three.js camera.
 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.3, 10000);
@@ -83,6 +96,16 @@ effect.setSize(window.innerWidth, window.innerHeight);
 
 // Create a VR manager helper to enter and exit VR mode.
 var manager = new WebVRManager(renderer, effect, {hideButton: false});
+
+// stats
+
+// stats = new Stats();
+// stats.domElement.style.position = 'absolute';
+// stats.domElement.style.bottom = '20px';
+// stats.domElement.style.left = '20px';
+// stats.domElement.style.zIndex = 9999;
+// // //stats.domElement.style.display = 'none';
+// document.body.appendChild( stats.domElement );
 
 // Crosshair
 var circleGeometry = new THREE.CircleGeometry( 2, 16 );
@@ -100,42 +123,30 @@ xHairInner.position.z = -10;
 
 camera.add( xhair, xHairInner );
 
+var geometry = new THREE.PlaneGeometry( 10, 10, 1, 1 );
+var material = new THREE.MeshBasicMaterial( {
+  map: THREE.ImageUtils.loadTexture( "img/homebutton.png" ),
+  color: 0xffffff, 
+  side: THREE.DoubleSide, 
+  depthWrite: true, 
+  depthTest: false, 
+  alphaTest:0.8,
+  transparent:true
+} );
+Pseudo = new THREE.Mesh( geometry, material );
+Pseudo.scale.set( 1, 1, 1 );
+//Pseudo.position.z = -5;
+Pseudo.position.y = -12;
+Pseudo.rotation.x = -0.5 * Math.PI;
+Pseudo.name = 'BackHome';
+scene.add( Pseudo );
 
-// Loader
+// load scene made with editor
 var loader = new THREE.ObjectLoader(preload);
+loader.load('scenes/holycrab.json', function(obj) {
+  scene.add(obj);
+});
 
-function loadFromFile(file) {
-    loader.load(file, function(obj) {
-        scene.add(obj);
-        initScene(obj);
-    });
-}
-
-function loadFromJson(json) {
-    var obj = loader.parse(json);
-    scene.add(obj);
-    initScene(obj);
-
-};
-
-function initScene(json){
-
-  //Get jump to start
-  scene.traverse (function (object)
-  {
-    if (object.name == "BackHome")
-    {
-      // console.log("he");
-
-       homeButton = object;
-       homeButtonDistance = object.position.y;
-       homeButtonBaseSize = new THREE.Vector3( object.scale.x, object.scale.y, object.scale.z );
-       homeSize = homeButtonBaseSize;
-
-    }
-  });
-
-};
 
 function updateXHair(_size, _color, _thetaLength){
 
@@ -198,13 +209,6 @@ function raycasting(){
       if(!tweenRunning){
 
         tweenRunning = true;
-
-        // var targetSize = new THREE.Vector3( tempObjectBaseScale.x*targetScaleBy, tempObjectBaseScale.y*targetScaleBy, tempObjectBaseScale.z*targetScaleBy );
-
-        // var tweenIn = new TWEEN.Tween( tempLookAtObject.scale )
-        //   .to( { x: targetSize.x, y:targetSize.y, z:targetSize.z  }, maxLookTime*1000 );
-
-        //   tweenIn.start();
    
       }
 
@@ -378,12 +382,13 @@ function hitObject(_hitObject, _jumpType, _pos){
 
 }
 
-
 // Request animation frame loop function
 function animate(timestamp) {
 
   //Get frame delta time
   frameDelta = clock.getDelta();
+
+  //stats.update();
 
   // Tween & Raycaster Update
   TWEEN.update();
@@ -392,20 +397,20 @@ function animate(timestamp) {
   // Update VR headset position and apply to camera.
   controls.update();
 
-  //Update Homebutton
-  if(homeButton !== undefined){
-    homeButton.material.opacity = 0.0;
-    homeButton.scale = homeButtonBaseSize ;
+  //Update Standalone HomeButton Version
+  if(Pseudo !== undefined){
+    Pseudo.material.opacity = 0.0;
+    //Pseudo.scale = PseudoBaseSize ;
 
     if(!isHome){
 
-      homeButton.material.opacity = 1;
-      homeButton.position.set(camera.position.x, camera.position.y + homeButtonDistance, camera.position.z );
+      Pseudo.material.opacity = 1;
+      Pseudo.position.set(camera.position.x, camera.position.y - 12, camera.position.z );
     
     }else{
 
-      homeButton.material.opacity = 0.0;
-      homeButton.scale.set(homeSize.x, homeSize.y, homeSize.z);
+      Pseudo.material.opacity = 0.0;
+      //Pseudo.scale.set(homeSize.x, homeSize.y, homeSize.z);
 
     }
   }
@@ -420,16 +425,6 @@ function animate(timestamp) {
 // Kick off animation loop
 animate();
 // initScene();
-
-// function onDocumentTouchStart( event ) {
-  
-//   // event.preventDefault();
-  
-//   event.clientX = event.touches[0].clientX;
-//   event.clientY = event.touches[0].clientY;
-//   onDocumentMouseDown( event );
-
-// }
 
 function onDocumentMouseDown( event ) {
 
@@ -452,31 +447,30 @@ function onDocumentMouseDown( event ) {
   }
 }
 
-    // Reset the position sensor when 'z' pressed.
+// Reset the position sensor when "z" pressed.
 function onKey(event) {
   if (event.keyCode == 90) { // z
     controls.resetSensor();
   }
-};
+}
 
 window.addEventListener("keydown", onKey, true);
 window.addEventListener( "mousedown", onDocumentMouseDown, false );
+// window.addEventListener( "touchstart", onDocumentTouchStart, false );
 
-window.addEventListener('keydown', onKey, true);
+// Handle window resizes
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
 
-    // Handle window resizes
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-
-      effect.setSize(window.innerWidth, window.innerHeight);
-  }
-
-  window.addEventListener('resize', onWindowResize, false);
-
-
-  function takeScreenshot() {
-    var dataUrl = renderer.domElement.toDataURL("image/png");
-    if (CARDBOARD_DEBUG) console.debug("SCREENSHOT: " + dataUrl);
-    return renderer.domElement.toDataURL("image/png");
+    effect.setSize(window.innerWidth, window.innerHeight);
 }
+
+window.addEventListener("resize", onWindowResize, false);
+
+
+// function takeScreenshot() {
+//     var dataUrl = renderer.domElement.toDataURL("image/png");
+//     if (CARDBOARD_DEBUG) console.debug("SCREENSHOT: " + dataUrl);
+//     return renderer.domElement.toDataURL("image/png");
+// }
