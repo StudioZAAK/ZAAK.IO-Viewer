@@ -19,11 +19,12 @@ To work with the version that is currently on http://zaak.io focus on index.html
 --
 
 # standalone version
-If you want to go on with a standalone version focus on standalone.html icluding standalone.js
+If you want to go on with a standalone version focus on standalone.html including standalone.js
 Home Button Navigation from files created with http://www.zaak.io/editor/ are currently not implemented.
 But you can access this navigation type directly via standalone.js (custom incuded)
 
 --
 
+#Typ:
 When using http://www.zaak.io/editor/ to create your scenes you can export every scene by clicking 'ctrl+e'
 
