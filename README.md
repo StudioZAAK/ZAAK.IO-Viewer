@@ -16,14 +16,12 @@ It has a preloader, a raycaster, a HUD with crosshair as well as three different
 # http://zaak.io Version
 To work with the version that is currently on http://zaak.io focus on index.html, viewer.html including main.js
 
---
 
 # Standalone Version
 If you want to go on with a standalone version focus on standalone.html including standalone.js
 Home Button Navigation from .json files created with http://www.zaak.io/editor/ are currently not implemented.
 But you can access this navigation type directly via standalone.js (it's implemented)
 
---
 
 #Typ:
 When using http://www.zaak.io/editor/ to create your scenes you can export every scene by clicking 'ctrl+e'
