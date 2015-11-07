@@ -13,10 +13,12 @@ HomeButton : If you move away from 0/0/0 the homebutton will appear and bring yo
 
 --
 
+# http://zaak.io Version
 To work with the version that is currently on http://zaak.io focus on index.html, viewer.html including main.js
 
 --
 
+# standalone version
 If you want to go on with a standalone version focus on standalone.html icluding standalone.js
 Home Button Navigation from files created with http://www.zaak.io/editor/ are currently not implemented.
 But you can access this navigation type directly via standalone.js (custom incuded)
