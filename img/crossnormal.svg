@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="crosshair" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="256px" height="256px" viewBox="-315 0 256 256" enable-background="new -315 0 256 256" xml:space="preserve">
+<g id="cload_1_">
+	<path fill="#FFFFFF" d="M-187,244c-63.962,0-116-52.037-116-116c0-63.962,52.038-116,116-116S-71,64.038-71,128
+		C-71,191.963-123.038,244-187,244z"/>
+	<g>
+		<path fill="#093CA4" d="M-187,24c57.346,0,104,46.654,104,104s-46.654,104-104,104s-104-46.654-104-104S-244.346,24-187,24
+			 M-187,0c-70.692,0-128,57.308-128,128s57.308,128,128,128s128-57.308,128-128S-116.308,0-187,0L-187,0z"/>
+	</g>
+</g>
+</svg>
