@@ -1,0 +1,7 @@
+{
+  "short_name": "WebVR Boilerplate",
+  "name": "WebVR Boilerplate",
+  "start_url": "/viewer.html",
+  "display": "fullscreen",
+  "orientation": "landscape"
+}
