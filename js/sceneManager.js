@@ -36,6 +36,9 @@ function newSite(subsite) {
 
 function loadNewSite(_subsite){
 
+    console.log(_subsite);
   document.getElementById('myIframe').src = _subsite;
+      TweenMax.to("#myIframe",fadeIn,{opacity: 1, delay:1});
+
 
 }

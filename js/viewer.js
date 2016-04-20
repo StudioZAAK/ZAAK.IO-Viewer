@@ -1,4 +1,5 @@
-"use strict";
+//ZAAK IO Viewer
+
 var Viewer = function(){
  
   var scope = this;
@@ -205,9 +206,8 @@ var Viewer = function(){
       for ( var i = 0; i < scripts.length; i ++ ) {
 
         var _script = scripts[ i ];
-        console.log(_script.source);
+        console.log(scope);
         var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, camera );
-
         for ( var name in functions ) {
 
           if ( functions[ name ] === undefined ) continue;
