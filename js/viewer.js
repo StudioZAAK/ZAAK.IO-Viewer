@@ -742,11 +742,11 @@ var Viewer = function(){
     effect.setSize(window.innerWidth, window.innerHeight);
   }
 
-  function takeScreenshot() {
+  this.takeScreenshot = function() {
     var dataUrl = renderer.domElement.toDataURL('image/png');
 
     if (CARDBOARD_DEBUG) console.debug('SCREENSHOT: ' + dataUrl);
       return renderer.domElement.toDataURL('image/png');
 
-  }
+  };
 };
