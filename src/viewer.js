@@ -1,7 +1,10 @@
-"use strict";
-var Viewer = function(){
+//ZAAK IO Viewer
 
-  var renderer, scene, camera, raycaster, listener;
+var Viewer = function(){
+ 
+  var scope = this;
+
+  var renderer, camera, raycaster, listener;
 
   var preload = new THREE.LoadingManager();
 
@@ -37,7 +40,6 @@ var Viewer = function(){
   var isMobile = mobileCheck();
 
   var spriteAnimators = [];
-  var plugins = [];
 
   //Check if device can handle WebGL
   if ( !webglAvailable() ) {
@@ -77,35 +79,42 @@ var Viewer = function(){
   raycaster = new THREE.Raycaster();
 
   // Create a three.js scene.
-  scene = new THREE.Scene();
+  this.scene = new THREE.Scene();
 
   //Make public stuff
-  this.scene = scene;
   this.controls = controls;
   this.camera = camera;
+  this.isMobile = isMobile;
+  this.allPlugins = {};
 
   // Load an Editor json File
-  this.loadJSON(file, _plugins){
+  this.loadJSON = function(file){
 
     xhrLoader.crossOrigin = '';
 
     xhrLoader.load( file, function ( text ) {
 
-        startScene( JSON.parse(text) );
+        scope.startScene( JSON.parse(text) );
 
     } );
-
-    //Load all the skyboxes
-    plugins = _plugins;
-
-  }
+  };
 
   //The whole start up sequence once we have a parsed JSON file
-  function startScene (json) {
+  this.startScene = function(json) {
 
     setProject(json);
     setScene(objLoader.parse( json.scene ));
     setScripts(json);
+
+    //Fog
+    if(json.project.fog !== null){
+
+      if(json.project.fog.near !== undefined){
+        scene.fog = new THREE.Fog( json.project.fogColor, json.project.fog.near, json.project.fog.far );
+      }else{
+        scene.fog = new THREE.FogExp2( json.project.fogColor, json.project.fog.density );
+      }
+    }
 
     unlockAudio(); //IOS only
 
@@ -113,12 +122,15 @@ var Viewer = function(){
 
     manager.startMode = top.managerId;
 
-    for(var i = 0; i < plugins.length; i++)
-      plugins[i].init();
-
     play();
 
-  }
+    for (var property in this.allPlugins) {
+      if (this.allPlugins.hasOwnProperty(property)) {
+        if (typeof scope.allPlugins[property].init === "function")
+          this.allPlugins[property].init();
+      }
+    }
+  };
 
   //Set project values
   //Background & Fog
@@ -131,7 +143,8 @@ var Viewer = function(){
 
   function setScene(_scene){
 
-    scene = _scene;
+    scope.scene = _scene;
+    console.log("init");
     //Manual Add
 
   }
@@ -173,7 +186,7 @@ var Viewer = function(){
 
     for ( var uuid in json.scripts ) {
 
-      var object = scene.getObjectByProperty( 'uuid', uuid, true );
+      var object = scope.scene.getObjectByProperty( 'uuid', uuid, true );
 
       if ( object === undefined ) {
 
@@ -193,9 +206,10 @@ var Viewer = function(){
       for ( var i = 0; i < scripts.length; i ++ ) {
 
         var _script = scripts[ i ];
+        console.log(scope);
+        var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, camera );
 
-        var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( this, renderer, scene, camera );
-
+        console.log(functions);
         for ( var name in functions ) {
 
           if ( functions[ name ] === undefined ) continue;
@@ -261,13 +275,6 @@ var Viewer = function(){
     animate();
 
   }
-  //Exit to another website
-  function exit(_name){
-
-    top.managerId = manager.mode;
-
-    top.newSite(_name);
-  }
 
   ///////////////////////
   //Runtime - Functions
@@ -275,13 +282,13 @@ var Viewer = function(){
   function raycasting(){
 
     //Set ray to forward vector from the camera
-  var vector = new THREE.Vector3( 0, 0, -1 );
+    var vector = new THREE.Vector3( 0, 0, -1 );
     vector.applyQuaternion( camera.quaternion );
 
     raycaster.set( camera.position, vector.normalize() );
 
     // calculate objects intersecting the picking ray
-    var intersects = raycaster.intersectObjects( scene.children, true );
+    var intersects = raycaster.intersectObjects( scope.scene.children, true );
 
     //if nothing got hit
     if(intersects.length === 0){
@@ -393,13 +400,6 @@ var Viewer = function(){
     
   }
 
-  //After an event is done, always call reactivate to reenable raycasting
-  function reactivate() {
-
-    raycastingActive = true;
-
-  }
-
   // Request animation frame loop function
   function animate( time ) {
 
@@ -413,15 +413,22 @@ var Viewer = function(){
     frameDelta = (time-prevTime)/1000; // formated to seconds
 
     //Raycaster Update
-    if (manager.isVRMode() && raycastingActive)
+    if (manager.isVRMode())
       raycasting();
 
     // Update VR headset position and apply to camera.
     controls.update();
 
     // Sprite Animation Update
-    for(var a = 0; a < spriteAnimators.length; a++){ 
-      // spriteAnimators[i].update(frameDelta)
+    // for(var a = 0; a < scope.allPlugins.length; a++){ 
+    //   if (typeof scope.allPlugins[a].update === "function")
+    //     scope.allPlugins[a].update(frameDelta);
+    // }
+    for (var property in scope.allPlugins) {
+      if (scope.allPlugins.hasOwnProperty(property)) {
+        if (typeof scope.allPlugins[property].update === "function")
+          scope.allPlugins[property].update(frameDelta);
+      }
     }
 
     //Update Scripts
@@ -432,7 +439,7 @@ var Viewer = function(){
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
-    manager.render(scene, camera, time);
+    manager.render(scope.scene, camera, time);
 
     prevTime = time; 
     requestAnimationFrame(animate);
@@ -459,7 +466,7 @@ var Viewer = function(){
       raycaster.setFromCamera( mouse, camera );
     }
 
-    var _mouseIntersects = raycaster.intersectObjects( scene.children, true );
+    var _mouseIntersects = raycaster.intersectObjects( scope.scene.children, true );
     var _sortedObj = sortIntersects(_mouseIntersects);
 
     if(_sortedObj === null){
@@ -617,9 +624,9 @@ var Viewer = function(){
   }
 
   ///////////////////////
-  //Crosshair - Functions
+  //Code accessible functions
   ///////////////////////
-  function crossHairScaling(_dir){
+  this.crossHairScaling = function(_dir){
     if(manager.isVRMode()){
       if(_dir){
         TweenMax.to(".Absolute-Center", 0.1, {className:"+=Absolute-Center-Big"});
@@ -629,54 +636,15 @@ var Viewer = function(){
         TweenMax.to(".Absolute-Center-Loader", 0.1, {opacity:0});
       }
     }
-  }
+  };
 
-  ///////////////////////
-  //TextureAnimator - Functions
-  ///////////////////////
-  function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
-  { 
-    // note: texture passed by reference, will be updated by the update function.
+  //Exit to another website
+  this.exit = function(_name){
 
-    this.tilesHorizontal = tilesHoriz;
-    this.tilesVertical = tilesVert;
-    // how many images does this spritesheet contain?
-    //  usually equals tilesHoriz * tilesVert, but not necessarily,
-    //  if there at blank tiles at the bottom of the spritesheet. 
-    this.numberOfTiles = numTiles;
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-    texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
+    top.managerId = manager.mode;
 
-    // how long should each image be displayed?
-    this.tileDisplayDuration = tileDispDuration;
-
-    // how long has the current image been displayed?
-    this.currentDisplayTime = 0;
-
-    // which image is currently being displayed?
-    this.currentTile = 0;
-      
-    this.update = function( milliSec )
-    {
-      // console.log(milliSec);
-      if(!isNaN(milliSec)){
-          
-        this.currentDisplayTime += milliSec*1000;
-
-        while (this.currentDisplayTime > this.tileDisplayDuration)
-        {
-          this.currentDisplayTime -= this.tileDisplayDuration;
-          this.currentTile++;
-          if (this.currentTile == this.numberOfTiles)
-            this.currentTile = 0;
-          var currentColumn = this.currentTile % this.tilesHorizontal;
-          texture.offset.x = currentColumn / this.tilesHorizontal;
-          var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-          texture.offset.y = currentRow / this.tilesVertical;
-        }
-      }
-    };
-  }
+    top.newSite(_name);
+  };
 
   ///////////////////////
   //Fallback & Mobile - Functions
@@ -741,6 +709,9 @@ var Viewer = function(){
 
     return false;
   }
+
+
+
 
   //Toggle Master Volume
   function toggleMute(){

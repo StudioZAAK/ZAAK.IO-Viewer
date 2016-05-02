@@ -1,24 +1,36 @@
 "use strict";
-var Skyboxes = function(_viewer, _names){
+var Skyboxes = function(_viewer, _names, _tColor, _initialSky){
 
+  //The main WebGL Viewer
   this.viewer = _viewer;
 
+  //All names of all skies of the current stage
   this.skyNames = _names;
 
-  this.currentSkyName = '';
-  this.cubemapURL = '';
-
+  //The first shown sky, it's good that this is the first/second in loading order
+  this.initialSky = typeof _initialSky !== 'undefined' ? _initialSky : 0;
+  //The actual skybox 3DObject
   this.skyBox = null;
   this.skyMaterial = null;
   this.skyShader = THREE.ShaderLib[ 'cube' ];
   this.cubemap = null;
 
+  //Skybox size in 3D Space
   this.boxSize = 19;
 
+  //Fade out transition object
+  this.transition = null;
+  _tColor = typeof _tColor !== 'undefined' ? _tColor : 0x000000;
+
+  this.transitionColor = new THREE.Color( _tColor );
+
+  //Loaders
   this.cubeTexLoader = new THREE.CubeTextureLoader();
   this.imageLoader = new THREE.ImageLoader();
 
-  this.transition = null;
+  //Iteration Values
+  this.currentSkyName = '';
+  this.cubemapURL = '';
 
 };
 
@@ -27,8 +39,12 @@ Skyboxes.prototype = {
   //Init
   init: function () {
 
-    this.currentSkyName = this.skyNames[0];
-    if(isMobile) this.currentSkyName += "_mobile";
+    var scope = this;
+
+    this.currentSkyName = this.skyNames[scope.initialSky];
+    console.log(this.initialSky);
+    console.log(scope.skyNames[scope.initialSky]);
+    if(this.viewer.isMobile) this.currentSkyName += "_mobile";
 
     this.cubemapURL = [
       'img/sky/'+ this.currentSkyName + '/pano_2.jpg',
@@ -40,12 +56,12 @@ Skyboxes.prototype = {
 
     ];
 
-    this.skyShader = THREE.ShaderLib[ 'cube' ];
     this.cubemap = this.cubeTexLoader.load(this.cubemapURL, function(){
-      top.initialSkyboxLoad();
-      top.iframeDidLoad();
-      this.preloadImages();
+      parent.initialSkyboxLoad();
+      parent.iframeDidLoad();
+      scope.preloadImages();
     });
+          
     this.skyShader.uniforms[ 'tCube' ].value = this.cubemap;
 
     this.skyMaterial = new THREE.ShaderMaterial( {
@@ -63,14 +79,14 @@ Skyboxes.prototype = {
     );
 
     this.skyBox.position.set(0,0,0);
-    scene.add(this.skyBox);
+    this.viewer.scene.add(this.skyBox);
 
     //LoadingManager
     var geometry = new THREE.SphereGeometry( 1, 32, 32 );
-    var material = new THREE.MeshBasicMaterial( {color: 0x000000, transparent:true, opacity:0, side: THREE.DoubleSide} );
+    var material = new THREE.MeshBasicMaterial( {color: this.transitionColor, transparent:true, opacity:0, side: THREE.DoubleSide} );
     this.transition = new THREE.Mesh( geometry, material );
     this.transition.position.set (0,0,0);
-    scene.add( this.transition );
+    this.viewer.scene.add( this.transition );
   }, 
 
   preloadImages: function () {
@@ -81,15 +97,15 @@ Skyboxes.prototype = {
 
       found = false;
 
-      for(var y = 0; y < top.loadedSkies.length; y++){
+      for(var y = 0; y < parent.loadedSkies.length; y++){
       
-        if(top.loadedSkies[y] === this.skyNames[i] )
+        if(parent.loadedSkies[y] === this.skyNames[i] )
           found = true;
       }
 
       if(!found){
         _tempSkyNames.push(this.skyNames[i]);
-        top.loadedSkies.push(this.skyNames[i]);
+        parent.loadedSkies.push(this.skyNames[i]);
       }
     }
 
@@ -98,10 +114,10 @@ Skyboxes.prototype = {
       for(var iii = 0; iii < 6; iii++){
 
         this.currentSkyName = _tempSkyNames[ii];
-        if(isMobile) this.currentSkyName += "_mobile";
+        if(this.isMobile) this.currentSkyName += "_mobile";
 
         this.imageLoader.load( 'img/sky/'+ this.currentSkyName +'/pano_'+ iii +'.jpg', function(){
-          top.skyboxLoad();
+          parent.skyboxLoad();
         });    
       }
     }
@@ -109,13 +125,15 @@ Skyboxes.prototype = {
 
   recreateSky: function (_folderName, _newPos) {
 
-    TweenMax.to(this.transition.material, top.fadeOut ,{opacity: 1, onComplete:this.transitionEnd, onCompleteParams:[_folderName, _newPos]});
+    TweenMax.to(this.transition.material, top.fadeOut ,{opacity: 1, onComplete:this.transitionEnd, onCompleteParams:[_folderName, _newPos, this]});
 
   },
 
-  transitionEnd: function (_folderName, _newPos) {
+  transitionEnd: function (_folderName, _newPos, _scope) {
 
-    if(isMobile) _folderName += "_mobile";
+    _newPos = typeof _newPos !== 'undefined' ? _newPos : new THREE.Vector3( _scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z );
+
+    if(_scope.viewer.isMobile) _folderName += "_mobile";
 
     var urlsNew = [
       'img/sky/' + _folderName + '/pano_2.jpg',
@@ -126,16 +144,18 @@ Skyboxes.prototype = {
       'img/sky/' + _folderName + '/pano_3.jpg'
     ];
 
-    this.cubemap = this.cubeTexLoader.load(urlsNew);
-    this.skyShader.uniforms[ "tCube" ].value = this.cubemap;
+    _scope.cubemap = _scope.cubeTexLoader.load(urlsNew, function(map){
+      _scope.skyShader.uniforms[ "tCube" ].value = map;
+    });
 
-    this.viewer.camera.position.set(_newPos.x, _newPos.y, _newPos.z);
-    this.viewer.controls.resetSensor();
 
-    this.skyBox.position.set(this.viewer.camera.position.x, this.viewer.camera.position.y, this.viewer.camera.position.z);
-    this.transition.position.set(this.viewer.camera.position.x, this.viewer.camera.position.y, this.viewer.camera.position.z);
+    _scope.viewer.camera.position.set(_newPos.x, _newPos.y, _newPos.z);
+    _scope.viewer.controls.resetSensor();
 
-    TweenMax.to(this.transition.material, top.fadeIn, {opacity:0});
+    _scope.skyBox.position.set(_scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z);
+    _scope.transition.position.set(_scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z);
+
+    TweenMax.to(_scope.transition.material, top.fadeIn, {opacity:0});
 
   }
 };
