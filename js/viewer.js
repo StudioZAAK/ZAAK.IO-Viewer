@@ -110,9 +110,9 @@ var Viewer = function(){
     if(json.project.fog !== null){
 
       if(json.project.fog.near !== undefined){
-        scene.fog = new THREE.Fog( json.project.fogColor, json.project.fog.near, json.project.fog.far );
+        scope.scene.fog = new THREE.Fog( json.project.fogColor, json.project.fog.near, json.project.fog.far );
       }else{
-        scene.fog = new THREE.FogExp2( json.project.fogColor, json.project.fog.density );
+        scope.scene.fog = new THREE.FogExp2( json.project.fogColor, json.project.fog.density );
       }
     }
 
@@ -639,9 +639,14 @@ var Viewer = function(){
   //Exit to another website
   this.exit = function(_name){
 
-    top.managerId = manager.mode;
+    var parentFrame = top.document.getElementById('preview_iframe').contentWindow;
 
-    top.newSite(_name);
+    parentFrame.managerId = manager.mode;
+
+    parentFrame.newSite(_name);
+
+    // console.log(parentFrame.managerId);
+    //parentFrame[0].contentWindow.managerId; 
   };
 
   ///////////////////////
