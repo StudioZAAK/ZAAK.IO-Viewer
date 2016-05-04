@@ -41,6 +41,8 @@ var Viewer = function(){
 
   var spriteAnimators = [];
 
+  var parentFrame;
+
   //Check if device can handle WebGL
   if ( !webglAvailable() ) {
     window.open("fallback.html","_self");
@@ -118,7 +120,13 @@ var Viewer = function(){
 
     unlockAudio(); //IOS only
 
-    manager = new WebVRManager(renderer, effect, {hideButton: false});
+    // Create a VR manager helper to enter and exit VR mode.
+    var params = {
+      hideButton: false, // Default: false.
+      isUndistorted: false // Default: false.
+    };
+
+    manager = new WebVRManager(renderer, effect, params);
 
     manager.startMode = top.managerId;
 
@@ -270,6 +278,10 @@ var Viewer = function(){
 
     dispatch( events.start, arguments );
 
+    scope.parentFrame = window.parent;
+
+    scope.parentFrame.iframeDidLoad();
+
     animate();
 
   }
@@ -401,7 +413,7 @@ var Viewer = function(){
   // Request animation frame loop function
   function animate( time ) {
 
-    if (manager.isVRMode()){
+    if (manager.mode == 3){
       document.getElementById ("crosshair").style.display = "block";
     }  else {
       document.getElementById ("crosshair").style.display = "none";
@@ -411,7 +423,7 @@ var Viewer = function(){
     frameDelta = (time-prevTime)/1000; // formated to seconds
 
     //Raycaster Update
-    if (manager.isVRMode())
+    if (manager == 2)
       raycasting();
 
     // Update VR headset position and apply to camera.
@@ -433,7 +445,7 @@ var Viewer = function(){
     dispatch( events.update, { time: time, delta: time - prevTime } );
 
     //If an object get touched/clicked do it's update function
-    if(!manager.isVRMode() && manager.getViewer().id !== "CardboardV1" && eventObject !== null)
+    if(!manager.mode == 3 && manager.getViewer().id !== "CardboardV1" && eventObject !== null)
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
@@ -448,7 +460,7 @@ var Viewer = function(){
   ///////////////////////
   function clickCast(_x, _y, _type){
 
-    if(manager.isVRMode() && manager.getViewer().id == "CardboardV2"){
+    if(manager.mode == 3 && manager.getViewer().id == "CardboardV2"){
 
       //Set ray to forward vector from the camera
       var vector = new THREE.Vector3( 0, 0, -1 );
@@ -559,7 +571,7 @@ var Viewer = function(){
 
   function onDocumentMouseDown( event ) {
 
-    if(!manager.isVRMode()){
+    if(!manager.mode == 3){
       clickCast(event.clientX, event.clientY, "start");
 
       dispatch( events.mousedown, event );
@@ -568,7 +580,7 @@ var Viewer = function(){
 
   function onDocumentMouseUp( event ) {
 
-    if(!manager.isVRMode()) {
+    if(!manager.mode == 3) {
       if(eventObject !== null && rayEnd[eventObject.uuid]) {
          
         dispatch( rayEnd[ eventObject.uuid ] );
@@ -582,7 +594,7 @@ var Viewer = function(){
 
   function onDocumentMouseMove( event ) {
 
-    if(!manager.isVRMode()){
+    if(!manager.mode == 3){
       dispatch( events.mousemove, event );
 
       clickCast(event.clientX, event.clientY, "hover");
@@ -591,7 +603,7 @@ var Viewer = function(){
 
   function onDocumentTouchStart( event ) {
 
-    if(manager.isVRMode() && manager.getViewer().id == "CardboardV1"){
+    if(manager.mode == 3 && manager.getViewer().id == "CardboardV1"){
       lookAtTime = maxLookTime;
       return;
     }
@@ -625,7 +637,7 @@ var Viewer = function(){
   //Code accessible functions
   ///////////////////////
   this.crossHairScaling = function(_dir){
-    if(manager.isVRMode()){
+    if(manager.mode == 3){
       if(_dir){
         TweenMax.to(".Absolute-Center", 0.1, {className:"+=Absolute-Center-Big"});
         TweenMax.to(".Absolute-Center-Loader", maxLookTime, {opacity:1});
@@ -639,14 +651,10 @@ var Viewer = function(){
   //Exit to another website
   this.exit = function(_name){
 
-    var parentFrame = top.document.getElementById('preview_iframe').contentWindow;
+    scope.parentFrame.managerId = manager.mode;
 
-    parentFrame.managerId = manager.mode;
+    scope.parentFrame.newSite(_name);
 
-    parentFrame.newSite(_name);
-
-    // console.log(parentFrame.managerId);
-    //parentFrame[0].contentWindow.managerId; 
   };
 
   ///////////////////////
@@ -713,9 +721,6 @@ var Viewer = function(){
     return false;
   }
 
-
-
-
   //Toggle Master Volume
   function toggleMute(){
 
@@ -737,10 +742,11 @@ var Viewer = function(){
     listener.setMasterVolume(0.01);
   }; 
 
-  window.addEventListener('resize', onWindowResize, false);
+  window.addEventListener('resize', onResize, false);
+  window.addEventListener('vrdisplaypresentchange', onResize, true);
 
   // Handle window resizes
-  function onWindowResize() {
+  function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
@@ -750,8 +756,8 @@ var Viewer = function(){
   this.takeScreenshot = function() {
     var dataUrl = renderer.domElement.toDataURL('image/png');
 
-    if (CARDBOARD_DEBUG) console.debug('SCREENSHOT: ' + dataUrl);
-      return renderer.domElement.toDataURL('image/png');
+    //if (CARDBOARD_DEBUG) console.debug('SCREENSHOT: ' + dataUrl);
+    return renderer.domElement.toDataURL('image/png');
 
   };
 };

@@ -641,9 +641,14 @@ var Viewer = function(){
   //Exit to another website
   this.exit = function(_name){
 
-    top.managerId = manager.mode;
+    var parentFrame = top.document.getElementById('preview_iframe').contentWindow;
 
-    top.newSite(_name);
+    parentFrame.managerId = manager.mode;
+
+    parentFrame.newSite(_name);
+
+    // console.log(parentFrame.managerId);
+    //parentFrame[0].contentWindow.managerId; 
   };
 
   ///////////////////////

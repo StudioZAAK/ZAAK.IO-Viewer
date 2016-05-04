@@ -9,6 +9,7 @@ function iframeDidLoad() {
 
     var loadTime = Date.now() - startTime;
     console.log("Iframe loaded in " + loadTime/1000 + " seconds");
+    //TweenMax.to("#myIframe",fadeOut,{opacity: 0});
 
     //Fade in
     TweenMax.to("#myIframe", fadeIn, {opacity: 1, delay:0.5});
@@ -37,8 +38,8 @@ function newSite(subsite) {
 function loadNewSite(_subsite){
 
     console.log(_subsite);
-  document.getElementById('myIframe').src = _subsite;
-      TweenMax.to("#myIframe",fadeIn,{opacity: 1, delay:1});
+    document.getElementById('myIframe').src = _subsite;
+    //TweenMax.to("#myIframe",fadeIn,{opacity: 1, delay:1});
 
 
 }

@@ -92,3 +92,21 @@ iframe {
   width: 52%;
   height: 100%;
 }
+
+.left-halfLoader {
+  background-color: transparent;
+  position: absolute;
+  left: -20px;
+  margin-top: -8px;
+  width: 52%;
+  height: 100%;
+}
+
+.right-halfLoader {
+  background-color: transparent;
+  position: absolute;
+  right: 20px;
+  margin-top: -8px;
+  width: 52%;
+  height: 100%;
+}

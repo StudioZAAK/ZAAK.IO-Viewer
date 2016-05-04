@@ -8,35 +8,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 
 <body>
 
-  <!-- <div id="framer">
-    <iframe id="myIframe" style = "display: block;border: none;height: 100vh; width: 100vw; float:left; margin-left:0px"; src='menu.html' border='0' width='100vh' height='100vw' scrolling='no' marginheight='0' marginwidth='0' frameborder='0' allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency="true"></iframe>
-  </div> -->
-
   <div id="framer">
-    <iframe id="myIframe" src="viewer.html" allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency='true' scrolling='no'>
+    <iframe id="myIframe" src="viewer.html" allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency='true' scrolling='no'  style="opacity: 0;">
         Your browser doesn't support iframes
     </iframe>
   </div>
 
 
-<!--   <div class="intrinsic-container">
-    <iframe id="myIframe" src='menu.html' scrolling='no' frameborder='0' allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency="true"></iframe>
-  </div> -->
-
-
     <div id="loader">
-    <div class="left-half">
+    <div class="left-halfLoader">
       <article>
-        <div class="Absolute-Center"><img src="img/preloader.gif" width="32px" height="auto"></div>
+        <div class="Absolute-Center"><img src="img/preloader.gif" width="40px" height="auto"></div>
       </article>
     </div>
-    <div class="right-half">
+    <div class="right-halfLoader">
       <article>
-        <div class="Absolute-Center"><img src="img/preloader.gif" width="32px" height="auto"></div>
+        <div class="Absolute-Center"><img src="img/preloader.gif" width="40px" height="auto"></div>
       </article>
     </div>
   </div>
@@ -51,8 +43,8 @@
 <script type="text/javascript">
 
         setTimeout(function() {
-            // document.getElementById('myIframe').contentWindow.viewer.loadJSON('scenes/zaak.json');
-            // document.getElementById('myIframe').contentWindow.viewer.startScene(jumping);
+            document.getElementById('myIframe').contentWindow.viewer.loadJSON('scenes/zaak.json');
+            //document.getElementById('myIframe').contentWindow.viewer.startScene(jumping);
         }, 1000);
 
 </script>
