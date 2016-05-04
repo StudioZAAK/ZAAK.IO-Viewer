@@ -571,7 +571,7 @@ var Viewer = function(){
 
   function onDocumentMouseDown( event ) {
 
-    if(!manager.mode == 3){
+    if(manager.mode != 3){
       clickCast(event.clientX, event.clientY, "start");
 
       dispatch( events.mousedown, event );
@@ -580,7 +580,7 @@ var Viewer = function(){
 
   function onDocumentMouseUp( event ) {
 
-    if(!manager.mode == 3) {
+    if(manager.mode != 3) {
       if(eventObject !== null && rayEnd[eventObject.uuid]) {
          
         dispatch( rayEnd[ eventObject.uuid ] );
@@ -594,7 +594,7 @@ var Viewer = function(){
 
   function onDocumentMouseMove( event ) {
 
-    if(!manager.mode == 3){
+    if(manager.mode != 3){
       dispatch( events.mousemove, event );
 
       clickCast(event.clientX, event.clientY, "hover");
@@ -623,8 +623,10 @@ var Viewer = function(){
     if(eventObject !== null && rayEnd[eventObject.uuid]) {
       dispatch( rayEnd[ eventObject.uuid ] );
       eventObject = null;
-      dispatch( events.touchend, event );
     }
+
+    dispatch( events.touchend, event );
+
   }
 
   function onDocumentTouchMove( event ) {
