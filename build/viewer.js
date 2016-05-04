@@ -1,189 +1,763 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*
- * Copyright 2015 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+//ZAAK IO Viewer
 
-var ZAAKPlugins = require('./skyboxes.js');
+var Viewer = function(){
+ 
+  var scope = this;
 
-window.ZAAKPlugins = ZAAKPlugins;
+  var renderer, camera, raycaster, listener;
 
+  var preload = new THREE.LoadingManager();
 
+  var objLoader = new THREE.ObjectLoader( preload );
+  var xhrLoader = new THREE.XHRLoader( preload );
+  var jsonLoader = new THREE.JSONLoader();
 
-// console.log(window.Viewer);
+  var mouse = new THREE.Vector2(0,0);
 
+  var raycastingActive = true;
+  var tempLookAtObject = null; //temp: object we are charging up, old: object we activated
+  var eventObject = null;
+  var hoverObject = null;
+  var resetObject = null;
+  var lookAtTime = 0.0;
+  var maxLookTime = 1.1;
 
-},{"./skyboxes.js":2}],2:[function(require,module,exports){
-"use strict";
-var Skyboxes = function(_viewer, _names, _tColor, _initialSky){
+  var prevTime; 
 
-  //The main WebGL Viewer
-  this.viewer = _viewer;
+  var frameDelta;
 
-  //All names of all skies of the current stage
-  this.skyNames = _names;
+  var controls, manager, effect;
 
-  //The first shown sky, it's good that this is the first/second in loading order
-  this.initialSky = typeof _initialSky !== 'undefined' ? _initialSky : 0;
-  //The actual skybox 3DObject
-  this.skyBox = null;
-  this.skyMaterial = null;
-  this.skyShader = THREE.ShaderLib[ 'cube' ];
-  this.cubemap = null;
+  var events = {};
+  var rayStart = {};
+  var rayUpdate = {};
+  var rayEnd = {};
+  var rayHover = {};
+  var rayHoverStart = {};
 
-  //Skybox size in 3D Space
-  this.boxSize = 19;
+  var manager;
 
-  //Fade out transition object
-  this.transition = null;
-  _tColor = typeof _tColor !== 'undefined' ? _tColor : 0x000000;
+  var isMobile = mobileCheck();
 
-  this.transitionColor = new THREE.Color( _tColor );
+  var spriteAnimators = [];
 
-  //Loaders
-  this.cubeTexLoader = new THREE.CubeTextureLoader();
-  this.imageLoader = new THREE.ImageLoader();
+  var parentFrame;
 
-  //Iteration Values
-  this.currentSkyName = '';
-  this.cubemapURL = '';
+  //Check if device can handle WebGL
+  if ( !webglAvailable() ) {
+    window.open("fallback.html","_self");
+  }
 
-};
+  //Check Mobile
+  function mobileCheck() {
+    var check = false;
+    (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+    return check;
+  }
 
-Skyboxes.prototype = {
+  //Setup three.js WebGL renderer
+  renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
 
-  //Init
-  init: function () {
+  // Append the canvas element created by the renderer to document body element.
+  document.body.appendChild(renderer.domElement);
 
-    var scope = this;
+  // Create a three.js camera.
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.3, 10000);
 
-    this.currentSkyName = this.skyNames[scope.initialSky];
-    console.log(this.initialSky);
-    console.log(scope.skyNames[scope.initialSky]);
-    if(this.viewer.isMobile) this.currentSkyName += "_mobile";
+  //Add AudioListener
+  listener = new THREE.AudioListener();
+  listener.name = 'Listener';
+  camera.add( listener );
 
-    this.cubemapURL = [
-      'img/sky/'+ this.currentSkyName + '/pano_2.jpg',
-      'img/sky/'+ this.currentSkyName + '/pano_0.jpg',
-      'img/sky/'+ this.currentSkyName + '/pano_4.jpg',
-      'img/sky/'+ this.currentSkyName + '/pano_5.jpg',
-      'img/sky/'+ this.currentSkyName + '/pano_1.jpg',
-      'img/sky/'+ this.currentSkyName + '/pano_3.jpg'
+  // Apply VR headset positional data to camera.
+  controls = new THREE.VRControls(camera);
 
-    ];
+  // Apply VR stereo rendering to renderer.
+  effect = new THREE.VREffect(renderer);
+  effect.setSize(window.innerWidth, window.innerHeight);
 
-    this.cubemap = this.cubeTexLoader.load(this.cubemapURL, function(){
-      parent.initialSkyboxLoad();
-      parent.iframeDidLoad();
-      scope.preloadImages();
-    });
-          
-    this.skyShader.uniforms[ 'tCube' ].value = this.cubemap;
+  //Set up Raycaster
+  raycaster = new THREE.Raycaster();
 
-    this.skyMaterial = new THREE.ShaderMaterial( {
+  // Create a three.js scene.
+  this.scene = new THREE.Scene();
 
-      fragmentShader: this.skyShader.fragmentShader,
-      vertexShader: this.skyShader.vertexShader,
-      uniforms: this.skyShader.uniforms,
-      side: THREE.BackSide
+  //Make public stuff
+  this.controls = controls;
+  this.camera = camera;
+  this.isMobile = isMobile;
+  this.allPlugins = {};
+
+  // Load an Editor json File
+  this.loadJSON = function(file){
+
+    xhrLoader.crossOrigin = '';
+
+    xhrLoader.load( file, function ( text ) {
+
+        scope.startScene( JSON.parse(text) );
 
     } );
+  };
 
-    this.skyBox = new THREE.Mesh(
-      new THREE.BoxGeometry(this.boxSize, this.boxSize, this.boxSize),
-      this.skyMaterial 
-    );
+  //The whole start up sequence once we have a parsed JSON file
+  this.startScene = function(json) {
 
-    this.skyBox.position.set(0,0,0);
-    this.viewer.scene.add(this.skyBox);
+    setProject(json);
+    setScene(objLoader.parse( json.scene ));
+    setScripts(json);
 
-    //LoadingManager
-    var geometry = new THREE.SphereGeometry( 1, 32, 32 );
-    var material = new THREE.MeshBasicMaterial( {color: this.transitionColor, transparent:true, opacity:0, side: THREE.DoubleSide} );
-    this.transition = new THREE.Mesh( geometry, material );
-    this.transition.position.set (0,0,0);
-    this.viewer.scene.add( this.transition );
-  }, 
+    //Fog
+    if(json.project.fog !== null){
 
-  preloadImages: function () {
-
-    var found = false;
-    var _tempSkyNames = [];
-    for(var i = 1; i < this.skyNames.length; i++){
-
-      found = false;
-
-      for(var y = 0; y < parent.loadedSkies.length; y++){
-      
-        if(parent.loadedSkies[y] === this.skyNames[i] )
-          found = true;
-      }
-
-      if(!found){
-        _tempSkyNames.push(this.skyNames[i]);
-        parent.loadedSkies.push(this.skyNames[i]);
+      if(json.project.fog.near !== undefined){
+        scope.scene.fog = new THREE.Fog( json.project.fogColor, json.project.fog.near, json.project.fog.far );
+      }else{
+        scope.scene.fog = new THREE.FogExp2( json.project.fogColor, json.project.fog.density );
       }
     }
 
-    //LoadTextures
-    for(var ii = 0; ii < _tempSkyNames.length; ii++){
-      for(var iii = 0; iii < 6; iii++){
+    unlockAudio(); //IOS only
 
-        this.currentSkyName = _tempSkyNames[ii];
-        if(this.isMobile) this.currentSkyName += "_mobile";
+    // Create a VR manager helper to enter and exit VR mode.
+    var params = {
+      hideButton: false, // Default: false.
+      isUndistorted: false // Default: false.
+    };
 
-        this.imageLoader.load( 'img/sky/'+ this.currentSkyName +'/pano_'+ iii +'.jpg', function(){
-          parent.skyboxLoad();
-        });    
+    manager = new WebVRManager(renderer, effect, params);
+
+    manager.startMode = top.managerId;
+
+    play();
+
+    for (var property in this.allPlugins) {
+      if (this.allPlugins.hasOwnProperty(property)) {
+        if (typeof scope.allPlugins[property].init === "function")
+          this.allPlugins[property].init();
       }
     }
-  },
+  };
 
-  recreateSky: function (_folderName, _newPos) {
+  //Set project values
+  //Background & Fog
+  function setProject ( json ){
 
-    TweenMax.to(this.transition.material, top.fadeOut ,{opacity: 1, onComplete:this.transitionEnd, onCompleteParams:[_folderName, _newPos, this]});
-
-  },
-
-  transitionEnd: function (_folderName, _newPos, _scope) {
-
-    _newPos = typeof _newPos !== 'undefined' ? _newPos : new THREE.Vector3( _scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z );
-
-    if(_scope.viewer.isMobile) _folderName += "_mobile";
-
-    var urlsNew = [
-      'img/sky/' + _folderName + '/pano_2.jpg',
-      'img/sky/' + _folderName + '/pano_0.jpg',
-      'img/sky/' + _folderName + '/pano_4.jpg',
-      'img/sky/' + _folderName + '/pano_5.jpg',
-      'img/sky/' + _folderName + '/pano_1.jpg',
-      'img/sky/' + _folderName + '/pano_3.jpg'
-    ];
-
-    _scope.cubemap = _scope.cubeTexLoader.load(urlsNew, function(map){
-      _scope.skyShader.uniforms[ "tCube" ].value = map;
-    });
-
-
-    _scope.viewer.camera.position.set(_newPos.x, _newPos.y, _newPos.z);
-    _scope.viewer.controls.resetSensor();
-
-    _scope.skyBox.position.set(_scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z);
-    _scope.transition.position.set(_scope.viewer.camera.position.x, _scope.viewer.camera.position.y, _scope.viewer.camera.position.z);
-
-    TweenMax.to(_scope.transition.material, top.fadeIn, {opacity:0});
+    //Background
+    renderer.setClearColor( json.project.backgroundColor, 1 );
 
   }
+
+  function setScene(_scene){
+
+    scope.scene = _scene;
+    console.log("init");
+    //Manual Add
+
+  }
+
+  //Loads all scripts from the json file into the events[]
+  function setScripts(json){
+
+    events = {
+      init: [],
+      start: [],
+      stop: [],
+      keydown: [],
+      keyup: [],
+      mousedown: [],
+      mouseup: [],
+      mousemove: [],
+      touchstart: [],
+      touchend: [],
+      touchmove: [],
+      update: [],
+      rayStart: [],
+      rayUpdate: [],
+      rayHover: [],
+      rayEnd: [],
+      rayHoverStart: []
+    };
+
+    var scriptWrapParams = 'player,renderer,scene,camera';
+    var scriptWrapResultObj = {};
+
+    for ( var eventKey in events ) {
+
+      scriptWrapParams += ',' + eventKey;
+      scriptWrapResultObj[ eventKey ] = eventKey;
+
+    }
+
+    var scriptWrapResult = JSON.stringify( scriptWrapResultObj ).replace( /\"/g, '' );
+
+    for ( var uuid in json.scripts ) {
+
+      var object = scope.scene.getObjectByProperty( 'uuid', uuid, true );
+
+      if ( object === undefined ) {
+
+        console.warn( 'APP.Player: Script without object.', uuid );
+        continue;
+
+      }
+
+      var scripts = json.scripts[ uuid ];
+      rayStart[uuid] = [];
+      rayUpdate[uuid] = [];
+      rayEnd[uuid] = [];
+      rayHover[uuid] = [];
+      rayHoverStart[uuid] = [];
+
+      //Integrate global variables
+      for ( var i = 0; i < scripts.length; i ++ ) {
+
+        var _script = scripts[ i ];
+        console.log(scope);
+        var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, camera );
+        for ( var name in functions ) {
+
+          if ( functions[ name ] === undefined ) continue;
+
+          if ( events[ name ] === undefined ) {
+
+            console.warn( 'Event type not supported (', name, ')' );
+            continue;
+
+          }
+          
+          switch(functions[ name ].name){
+
+            case "rayStart":
+              rayStart[object.uuid].push(functions[ name ].bind( object ) );
+            break;
+
+            case "rayUpdate":
+              rayUpdate[object.uuid].push(functions[ name ].bind( object ) );
+            break;
+
+            case "rayEnd":
+              rayEnd[object.uuid].push(functions[ name ].bind( object ) );
+            break;
+
+            case "rayHover": // pc only
+              rayHover[object.uuid].push(functions[ name ].bind( object ) );
+            break;
+
+            case "rayHoverStart": // pc only
+              rayHoverStart[object.uuid].push(functions[ name ].bind( object ) );
+            break;
+
+            default:
+              events[ name ].push( functions[ name ].bind( object ) );
+            break;
+          }
+        }
+      }
+    }
+
+    dispatch( events.init, arguments );
+
+  }
+
+  // Kick off animation loop
+  function play(){
+
+    document.addEventListener( 'keydown', onDocumentKeyDown );
+    document.addEventListener( 'keyup', onDocumentKeyUp );
+    document.addEventListener( 'touchstart', onDocumentTouchStart );
+    document.addEventListener( 'touchend', onDocumentTouchEnd );
+    document.addEventListener( 'touchmove', onDocumentTouchMove );
+
+    if(!isMobile){
+      document.addEventListener( 'mousedown', onDocumentMouseDown );
+      document.addEventListener( 'mouseup', onDocumentMouseUp );
+      document.addEventListener( 'mousemove', onDocumentMouseMove );
+    }
+
+    dispatch( events.start, arguments );
+
+    scope.parentFrame = window.parent;
+
+    scope.parentFrame.iframeDidLoad();
+
+    animate();
+
+  }
+
+  ///////////////////////
+  //Runtime - Functions
+  ///////////////////////
+  function raycasting(){
+
+    //Set ray to forward vector from the camera
+    var vector = new THREE.Vector3( 0, 0, -1 );
+    vector.applyQuaternion( camera.quaternion );
+
+    raycaster.set( camera.position, vector.normalize() );
+
+    // calculate objects intersecting the picking ray
+    var intersects = raycaster.intersectObjects( scope.scene.children, true );
+
+    //if nothing got hit
+    if(intersects.length === 0){
+
+      resetRaycaster();
+      return;
+    }  
+
+    //Check all the intersects and give back 
+    //the first visible and event bound object
+    var intersectsClean = sortIntersects(intersects);
+
+    if(intersectsClean === null){
+
+      resetRaycaster();
+
+    }else{
+
+      if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
+        hoverObject = intersectsClean;
+        dispatch( rayHoverStart[ hoverObject.uuid ] );
+      }
+
+      //If its a V2 disable the LookAt Activation
+      if(manager.getViewer().id == "CardboardV2")
+        return;
+
+      //Do we look at the object we activated just before
+      if(intersectsClean === eventObject)
+        return;
+      else{
+
+        if(eventObject !== null){
+          if(rayEnd[eventObject.uuid])  
+              dispatch( rayEnd[ eventObject.uuid ] );
+
+            eventObject = null;
+        }
+      }
+
+      if(tempLookAtObject === intersectsClean){
+
+        lookAtTime += frameDelta;
+
+        //Trigger Event on Object
+        if(lookAtTime > maxLookTime){
+
+          if(rayStart[ tempLookAtObject.uuid ]){
+            dispatch( rayStart[ tempLookAtObject.uuid ] );
+            eventObject = tempLookAtObject;
+          }
+
+          lookAtTime = 0.0;
+          tempLookAtObject = null;
+
+        }
+
+      } else {
+
+        if(tempLookAtObject !== null){
+          if(rayEnd[tempLookAtObject.uuid])  
+            dispatch( rayEnd[ tempLookAtObject.uuid ] );
+        }
+
+        tempLookAtObject = intersectsClean;
+      }
+    }
+  }
+
+  //Returns the first object hit ( excluding some special cases )
+  function sortIntersects(_intersects){
+
+    for(var iClean = 0; iClean < _intersects.length; iClean++){
+
+      //Don't get crosshair and MoveToObjects
+      if( !_intersects[iClean].object.position.equals(camera.position)){
+        // console.log(_intersects[iClean].object);
+        if(rayStart[ _intersects[iClean].object.uuid] ){//|| // should suffice
+        // rayUpdate[ _intersects[iClean].object.uuid] ||
+        // rayHover[ _intersects[iClean].object.uuid] ||
+        // rayEnd[ _intersects[iClean].object.uuid]){
+          return _intersects[iClean].object;
+
+        }else{
+
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  function resetRaycaster(){
+
+    lookAtTime = 0.0;
+    tempLookAtObject = null;
+    resetObject = null;
+
+    if(eventObject !== null)
+      resetObject = eventObject;
+    else if(hoverObject !== null)
+      resetObject = hoverObject;
+
+    hoverObject = null;
+    eventObject = null;
+
+    if(resetObject !== null &&rayEnd[resetObject.uuid])  
+      dispatch( rayEnd[ resetObject.uuid ] );
+    
+  }
+
+  // Request animation frame loop function
+  function animate( time ) {
+
+    if (manager.mode == 3){
+      document.getElementById ("crosshair").style.display = "block";
+    }  else {
+      document.getElementById ("crosshair").style.display = "none";
+    }
+
+    //Get frame delta time
+    frameDelta = (time-prevTime)/1000; // formated to seconds
+
+    //Raycaster Update
+    if (manager == 2)
+      raycasting();
+
+    // Update VR headset position and apply to camera.
+    controls.update();
+
+    // Sprite Animation Update
+    // for(var a = 0; a < scope.allPlugins.length; a++){ 
+    //   if (typeof scope.allPlugins[a].update === "function")
+    //     scope.allPlugins[a].update(frameDelta);
+    // }
+    for (var property in scope.allPlugins) {
+      if (scope.allPlugins.hasOwnProperty(property)) {
+        if (typeof scope.allPlugins[property].update === "function")
+          scope.allPlugins[property].update(frameDelta);
+      }
+    }
+
+    //Update Scripts
+    dispatch( events.update, { time: time, delta: time - prevTime } );
+
+    //If an object get touched/clicked do it's update function
+    if(!manager.mode == 3 && manager.getViewer().id !== "CardboardV1" && eventObject !== null)
+      dispatch( rayUpdate[ eventObject.uuid ] );
+
+    // Render the scene through the manager.
+    manager.render(scope.scene, camera, time);
+
+    prevTime = time; 
+    requestAnimationFrame(animate);
+  }
+
+  ///////////////////////
+  //Input - Functions
+  ///////////////////////
+  function clickCast(_x, _y, _type){
+
+    if(manager.mode == 3 && manager.getViewer().id == "CardboardV2"){
+
+      //Set ray to forward vector from the camera
+      var vector = new THREE.Vector3( 0, 0, -1 );
+      vector.applyQuaternion( camera.quaternion );
+
+      raycaster.set( camera.position, vector.normalize() );
+
+    }else{
+
+      mouse.x = ( _x / window.innerWidth ) * 2 - 1; // todo on pc mouse
+      mouse.y = - ( _y / window.innerHeight ) * 2 + 1;
+
+      raycaster.setFromCamera( mouse, camera );
+    }
+
+    var _mouseIntersects = raycaster.intersectObjects( scope.scene.children, true );
+    var _sortedObj = sortIntersects(_mouseIntersects);
+
+    if(_sortedObj === null){
+      if(hoverObject !== null){
+        if(rayEnd[hoverObject.uuid]) {
+          dispatch( rayEnd[ hoverObject.uuid ] );
+          hoverObject = null;
+
+        }
+      }
+      return;
+    }
+
+    switch(_type) {
+
+        case "start":
+          if(rayStart[_sortedObj.uuid])
+            dispatch( rayStart[ _sortedObj.uuid ] );
+
+          if(rayUpdate[_sortedObj.uuid])
+            eventObject = _sortedObj; 
+       
+        break;
+
+        case "hover":
+
+          if(hoverObject !== _sortedObj)  { // If new hover object
+
+            if(hoverObject !== null && rayEnd[hoverObject.uuid])  
+              dispatch( rayEnd[ hoverObject.uuid ] );
+
+            hoverObject = _sortedObj; 
+
+            if(rayHoverStart[hoverObject.uuid])  
+              dispatch( rayHoverStart[ hoverObject.uuid ] );
+           
+          }else{ // If old hover object
+
+            if(hoverObject !== null && rayHover[hoverObject.uuid]) 
+              dispatch( rayHover[ hoverObject.uuid ] );
+
+          }     
+          
+        break;
+
+        case "end":
+
+          if(rayEnd[_sortedObj.uuid])  
+            dispatch( rayEnd[ _sortedObj.uuid ] );
+
+          eventObject = null;
+        break;
+
+        default:
+          console.log("Event-type missing!");
+        break;
+     
+      }
+
+  }
+
+  function dispatch( array, event ) {
+
+    for ( var i = 0, l = array.length; i < l; i ++ ) {
+
+      try {
+
+        array[ i ]( event );
+
+      } catch ( e ) {
+
+        console.error( ( e.message || e ), ( e.stack || '' ) );
+
+      }
+    }
+  }
+
+  function onDocumentKeyDown( event ) {
+
+    dispatch( events.keydown, event );
+
+    if (event.keyCode == 90) { // z
+      controls.resetSensor();
+    }
+  }
+
+  function onDocumentKeyUp( event ) {
+
+    dispatch( events.keyup, event );
+
+  }
+
+  function onDocumentMouseDown( event ) {
+
+    if(!manager.mode == 3){
+      clickCast(event.clientX, event.clientY, "start");
+
+      dispatch( events.mousedown, event );
+    }
+  }
+
+  function onDocumentMouseUp( event ) {
+
+    if(!manager.mode == 3) {
+      if(eventObject !== null && rayEnd[eventObject.uuid]) {
+         
+        dispatch( rayEnd[ eventObject.uuid ] );
+        eventObject = null;
+
+      }
+
+      dispatch( events.mouseup, event );
+    }
+  }
+
+  function onDocumentMouseMove( event ) {
+
+    if(!manager.mode == 3){
+      dispatch( events.mousemove, event );
+
+      clickCast(event.clientX, event.clientY, "hover");
+    }
+  }
+
+  function onDocumentTouchStart( event ) {
+
+    if(manager.mode == 3 && manager.getViewer().id == "CardboardV1"){
+      lookAtTime = maxLookTime;
+      return;
+    }
+
+    var touch0 = event.changedTouches[0];
+
+    clickCast(touch0.clientX, touch0.clientY, "start");
+
+    dispatch( events.touchstart, event );
+
+  }
+
+  function onDocumentTouchEnd( event ) {
+
+    unlockAudio();
+
+    if(eventObject !== null && rayEnd[eventObject.uuid]) {
+      dispatch( rayEnd[ eventObject.uuid ] );
+      eventObject = null;
+      dispatch( events.touchend, event );
+    }
+  }
+
+  function onDocumentTouchMove( event ) {
+
+    dispatch( events.touchmove, event );
+
+  }
+
+  ///////////////////////
+  //Code accessible functions
+  ///////////////////////
+  this.crossHairScaling = function(_dir){
+    if(manager.mode == 3){
+      if(_dir){
+        TweenMax.to(".Absolute-Center", 0.1, {className:"+=Absolute-Center-Big"});
+        TweenMax.to(".Absolute-Center-Loader", maxLookTime, {opacity:1});
+      }else{
+        TweenMax.to(".Absolute-Center", 0.1, {className:"-=Absolute-Center-Big"});
+        TweenMax.to(".Absolute-Center-Loader", 0.1, {opacity:0});
+      }
+    }
+  };
+
+  //Exit to another website
+  this.exit = function(_name){
+
+    scope.parentFrame.managerId = manager.mode;
+
+    scope.parentFrame.newSite(_name);
+
+  };
+
+  ///////////////////////
+  //Fallback & Mobile - Functions
+  ///////////////////////
+
+  function webglAvailable() {
+    try {
+      var canvas = document.createElement( 'canvas' );
+      return !!( window.WebGLRenderingContext && (
+        canvas.getContext( 'webgl' ) ||
+        canvas.getContext( 'experimental-webgl' ) )
+      );
+    } catch ( e ) {
+      return false;
+    }
+  }
+
+  ///////////////////////
+  //AUDIO - Functions
+  ///////////////////////
+
+  //Unlock Audio on IOS
+  var isUnlocked = false;
+  function unlockAudio() {
+        
+    if(!iOS() )
+      return;
+
+    if( isUnlocked )
+      return;
+
+    // create empty buffer and play it
+    var buffer = listener.context.createBuffer(1, 1, 22050);
+    var source = listener.context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(listener.context.destination);
+    source.noteOn(0);
+
+    // by checking the play state after some time, we know if we're really unlocked
+    setTimeout(function() {
+      if((source.playbackState === source.PLAYING_STATE || source.playbackState === source.FINISHED_STATE)) {
+        isUnlocked = true;
+        console.log('AudioUnlocked');
+      }
+    }, 0);
+  }
+
+  function iOS() {
+
+    var iDevices = [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ];
+
+    while (iDevices.length) {
+      if (navigator.platform === iDevices.pop()){ return true; }
+    }
+
+    return false;
+  }
+
+  //Toggle Master Volume
+  function toggleMute(){
+
+    var _volume = listener.getMasterVolume();
+
+    if(_volume > 0.02)
+      listener.setMasterVolume(0.01);
+    else
+      listener.setMasterVolume(1.0);
+  }
+
+  //Unmute Audio on Focus
+  window.onfocus = function () { 
+    listener.setMasterVolume(1);
+  }; 
+
+  //Mute Audio on Defocus
+  window.onblur = function () { 
+    listener.setMasterVolume(0.01);
+  }; 
+
+  window.addEventListener('resize', onResize, false);
+  window.addEventListener('vrdisplaypresentchange', onResize, true);
+
+  // Handle window resizes
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    effect.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  this.takeScreenshot = function() {
+    var dataUrl = renderer.domElement.toDataURL('image/png');
+
+    //if (CARDBOARD_DEBUG) console.debug('SCREENSHOT: ' + dataUrl);
+    return renderer.domElement.toDataURL('image/png');
+
+  };
 };
-},{}]},{},[1])
-//# sourceMappingURL=data:application/json;charset:utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uL3Vzci9sb2NhbC9saWIvbm9kZV9tb2R1bGVzL3dhdGNoaWZ5L25vZGVfbW9kdWxlcy9icm93c2VyLXBhY2svX3ByZWx1ZGUuanMiLCJzcmMvbWFpbi5qcyIsInNyYy9za3lib3hlcy5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQTtBQ0FBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUN2QkE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImZpbGUiOiJnZW5lcmF0ZWQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlc0NvbnRlbnQiOlsiKGZ1bmN0aW9uIGUodCxuLHIpe2Z1bmN0aW9uIHMobyx1KXtpZighbltvXSl7aWYoIXRbb10pe3ZhciBhPXR5cGVvZiByZXF1aXJlPT1cImZ1bmN0aW9uXCImJnJlcXVpcmU7aWYoIXUmJmEpcmV0dXJuIGEobywhMCk7aWYoaSlyZXR1cm4gaShvLCEwKTt2YXIgZj1uZXcgRXJyb3IoXCJDYW5ub3QgZmluZCBtb2R1bGUgJ1wiK28rXCInXCIpO3Rocm93IGYuY29kZT1cIk1PRFVMRV9OT1RfRk9VTkRcIixmfXZhciBsPW5bb109e2V4cG9ydHM6e319O3Rbb11bMF0uY2FsbChsLmV4cG9ydHMsZnVuY3Rpb24oZSl7dmFyIG49dFtvXVsxXVtlXTtyZXR1cm4gcyhuP246ZSl9LGwsbC5leHBvcnRzLGUsdCxuLHIpfXJldHVybiBuW29dLmV4cG9ydHN9dmFyIGk9dHlwZW9mIHJlcXVpcmU9PVwiZnVuY3Rpb25cIiYmcmVxdWlyZTtmb3IodmFyIG89MDtvPHIubGVuZ3RoO28rKylzKHJbb10pO3JldHVybiBzfSkiLCIvKlxuICogQ29weXJpZ2h0IDIwMTUgR29vZ2xlIEluYy4gQWxsIFJpZ2h0cyBSZXNlcnZlZC5cbiAqIExpY2Vuc2VkIHVuZGVyIHRoZSBBcGFjaGUgTGljZW5zZSwgVmVyc2lvbiAyLjAgKHRoZSBcIkxpY2Vuc2VcIik7XG4gKiB5b3UgbWF5IG5vdCB1c2UgdGhpcyBmaWxlIGV4Y2VwdCBpbiBjb21wbGlhbmNlIHdpdGggdGhlIExpY2Vuc2UuXG4gKiBZb3UgbWF5IG9idGFpbiBhIGNvcHkgb2YgdGhlIExpY2Vuc2UgYXRcbiAqXG4gKiAgICAgaHR0cDovL3d3dy5hcGFjaGUub3JnL2xpY2Vuc2VzL0xJQ0VOU0UtMi4wXG4gKlxuICogVW5sZXNzIHJlcXVpcmVkIGJ5IGFwcGxpY2FibGUgbGF3IG9yIGFncmVlZCB0byBpbiB3cml0aW5nLCBzb2Z0d2FyZVxuICogZGlzdHJpYnV0ZWQgdW5kZXIgdGhlIExpY2Vuc2UgaXMgZGlzdHJpYnV0ZWQgb24gYW4gXCJBUyBJU1wiIEJBU0lTLFxuICogV0lUSE9VVCBXQVJSQU5USUVTIE9SIENPTkRJVElPTlMgT0YgQU5ZIEtJTkQsIGVpdGhlciBleHByZXNzIG9yIGltcGxpZWQuXG4gKiBTZWUgdGhlIExpY2Vuc2UgZm9yIHRoZSBzcGVjaWZpYyBsYW5ndWFnZSBnb3Zlcm5pbmcgcGVybWlzc2lvbnMgYW5kXG4gKiBsaW1pdGF0aW9ucyB1bmRlciB0aGUgTGljZW5zZS5cbiAqL1xuXG52YXIgWkFBS1BsdWdpbnMgPSByZXF1aXJlKCcuL3NreWJveGVzLmpzJyk7XG5cbndpbmRvdy5aQUFLUGx1Z2lucyA9IFpBQUtQbHVnaW5zO1xuXG5cblxuLy8gY29uc29sZS5sb2cod2luZG93LlZpZXdlcik7XG5cbiIsIlwidXNlIHN0cmljdFwiO1xudmFyIFNreWJveGVzID0gZnVuY3Rpb24oX3ZpZXdlciwgX25hbWVzLCBfdENvbG9yLCBfaW5pdGlhbFNreSl7XG5cbiAgLy9UaGUgbWFpbiBXZWJHTCBWaWV3ZXJcbiAgdGhpcy52aWV3ZXIgPSBfdmlld2VyO1xuXG4gIC8vQWxsIG5hbWVzIG9mIGFsbCBza2llcyBvZiB0aGUgY3VycmVudCBzdGFnZVxuICB0aGlzLnNreU5hbWVzID0gX25hbWVzO1xuXG4gIC8vVGhlIGZpcnN0IHNob3duIHNreSwgaXQncyBnb29kIHRoYXQgdGhpcyBpcyB0aGUgZmlyc3Qvc2Vjb25kIGluIGxvYWRpbmcgb3JkZXJcbiAgdGhpcy5pbml0aWFsU2t5ID0gdHlwZW9mIF9pbml0aWFsU2t5ICE9PSAndW5kZWZpbmVkJyA/IF9pbml0aWFsU2t5IDogMDtcbiAgLy9UaGUgYWN0dWFsIHNreWJveCAzRE9iamVjdFxuICB0aGlzLnNreUJveCA9IG51bGw7XG4gIHRoaXMuc2t5TWF0ZXJpYWwgPSBudWxsO1xuICB0aGlzLnNreVNoYWRlciA9IFRIUkVFLlNoYWRlckxpYlsgJ2N1YmUnIF07XG4gIHRoaXMuY3ViZW1hcCA9IG51bGw7XG5cbiAgLy9Ta3lib3ggc2l6ZSBpbiAzRCBTcGFjZVxuICB0aGlzLmJveFNpemUgPSAxOTtcblxuICAvL0ZhZGUgb3V0IHRyYW5zaXRpb24gb2JqZWN0XG4gIHRoaXMudHJhbnNpdGlvbiA9IG51bGw7XG4gIF90Q29sb3IgPSB0eXBlb2YgX3RDb2xvciAhPT0gJ3VuZGVmaW5lZCcgPyBfdENvbG9yIDogMHgwMDAwMDA7XG5cbiAgdGhpcy50cmFuc2l0aW9uQ29sb3IgPSBuZXcgVEhSRUUuQ29sb3IoIF90Q29sb3IgKTtcblxuICAvL0xvYWRlcnNcbiAgdGhpcy5jdWJlVGV4TG9hZGVyID0gbmV3IFRIUkVFLkN1YmVUZXh0dXJlTG9hZGVyKCk7XG4gIHRoaXMuaW1hZ2VMb2FkZXIgPSBuZXcgVEhSRUUuSW1hZ2VMb2FkZXIoKTtcblxuICAvL0l0ZXJhdGlvbiBWYWx1ZXNcbiAgdGhpcy5jdXJyZW50U2t5TmFtZSA9ICcnO1xuICB0aGlzLmN1YmVtYXBVUkwgPSAnJztcblxufTtcblxuU2t5Ym94ZXMucHJvdG90eXBlID0ge1xuXG4gIC8vSW5pdFxuICBpbml0OiBmdW5jdGlvbiAoKSB7XG5cbiAgICB2YXIgc2NvcGUgPSB0aGlzO1xuXG4gICAgdGhpcy5jdXJyZW50U2t5TmFtZSA9IHRoaXMuc2t5TmFtZXNbc2NvcGUuaW5pdGlhbFNreV07XG4gICAgY29uc29sZS5sb2codGhpcy5pbml0aWFsU2t5KTtcbiAgICBjb25zb2xlLmxvZyhzY29wZS5za3lOYW1lc1tzY29wZS5pbml0aWFsU2t5XSk7XG4gICAgaWYodGhpcy52aWV3ZXIuaXNNb2JpbGUpIHRoaXMuY3VycmVudFNreU5hbWUgKz0gXCJfbW9iaWxlXCI7XG5cbiAgICB0aGlzLmN1YmVtYXBVUkwgPSBbXG4gICAgICAnaW1nL3NreS8nKyB0aGlzLmN1cnJlbnRTa3lOYW1lICsgJy9wYW5vXzIuanBnJyxcbiAgICAgICdpbWcvc2t5LycrIHRoaXMuY3VycmVudFNreU5hbWUgKyAnL3Bhbm9fMC5qcGcnLFxuICAgICAgJ2ltZy9za3kvJysgdGhpcy5jdXJyZW50U2t5TmFtZSArICcvcGFub180LmpwZycsXG4gICAgICAnaW1nL3NreS8nKyB0aGlzLmN1cnJlbnRTa3lOYW1lICsgJy9wYW5vXzUuanBnJyxcbiAgICAgICdpbWcvc2t5LycrIHRoaXMuY3VycmVudFNreU5hbWUgKyAnL3Bhbm9fMS5qcGcnLFxuICAgICAgJ2ltZy9za3kvJysgdGhpcy5jdXJyZW50U2t5TmFtZSArICcvcGFub18zLmpwZydcblxuICAgIF07XG5cbiAgICB0aGlzLmN1YmVtYXAgPSB0aGlzLmN1YmVUZXhMb2FkZXIubG9hZCh0aGlzLmN1YmVtYXBVUkwsIGZ1bmN0aW9uKCl7XG4gICAgICBwYXJlbnQuaW5pdGlhbFNreWJveExvYWQoKTtcbiAgICAgIHBhcmVudC5pZnJhbWVEaWRMb2FkKCk7XG4gICAgICBzY29wZS5wcmVsb2FkSW1hZ2VzKCk7XG4gICAgfSk7XG4gICAgICAgICAgXG4gICAgdGhpcy5za3lTaGFkZXIudW5pZm9ybXNbICd0Q3ViZScgXS52YWx1ZSA9IHRoaXMuY3ViZW1hcDtcblxuICAgIHRoaXMuc2t5TWF0ZXJpYWwgPSBuZXcgVEhSRUUuU2hhZGVyTWF0ZXJpYWwoIHtcblxuICAgICAgZnJhZ21lbnRTaGFkZXI6IHRoaXMuc2t5U2hhZGVyLmZyYWdtZW50U2hhZGVyLFxuICAgICAgdmVydGV4U2hhZGVyOiB0aGlzLnNreVNoYWRlci52ZXJ0ZXhTaGFkZXIsXG4gICAgICB1bmlmb3JtczogdGhpcy5za3lTaGFkZXIudW5pZm9ybXMsXG4gICAgICBzaWRlOiBUSFJFRS5CYWNrU2lkZVxuXG4gICAgfSApO1xuXG4gICAgdGhpcy5za3lCb3ggPSBuZXcgVEhSRUUuTWVzaChcbiAgICAgIG5ldyBUSFJFRS5Cb3hHZW9tZXRyeSh0aGlzLmJveFNpemUsIHRoaXMuYm94U2l6ZSwgdGhpcy5ib3hTaXplKSxcbiAgICAgIHRoaXMuc2t5TWF0ZXJpYWwgXG4gICAgKTtcblxuICAgIHRoaXMuc2t5Qm94LnBvc2l0aW9uLnNldCgwLDAsMCk7XG4gICAgdGhpcy52aWV3ZXIuc2NlbmUuYWRkKHRoaXMuc2t5Qm94KTtcblxuICAgIC8vTG9hZGluZ01hbmFnZXJcbiAgICB2YXIgZ2VvbWV0cnkgPSBuZXcgVEhSRUUuU3BoZXJlR2VvbWV0cnkoIDEsIDMyLCAzMiApO1xuICAgIHZhciBtYXRlcmlhbCA9IG5ldyBUSFJFRS5NZXNoQmFzaWNNYXRlcmlhbCgge2NvbG9yOiB0aGlzLnRyYW5zaXRpb25Db2xvciwgdHJhbnNwYXJlbnQ6dHJ1ZSwgb3BhY2l0eTowLCBzaWRlOiBUSFJFRS5Eb3VibGVTaWRlfSApO1xuICAgIHRoaXMudHJhbnNpdGlvbiA9IG5ldyBUSFJFRS5NZXNoKCBnZW9tZXRyeSwgbWF0ZXJpYWwgKTtcbiAgICB0aGlzLnRyYW5zaXRpb24ucG9zaXRpb24uc2V0ICgwLDAsMCk7XG4gICAgdGhpcy52aWV3ZXIuc2NlbmUuYWRkKCB0aGlzLnRyYW5zaXRpb24gKTtcbiAgfSwgXG5cbiAgcHJlbG9hZEltYWdlczogZnVuY3Rpb24gKCkge1xuXG4gICAgdmFyIGZvdW5kID0gZmFsc2U7XG4gICAgdmFyIF90ZW1wU2t5TmFtZXMgPSBbXTtcbiAgICBmb3IodmFyIGkgPSAxOyBpIDwgdGhpcy5za3lOYW1lcy5sZW5ndGg7IGkrKyl7XG5cbiAgICAgIGZvdW5kID0gZmFsc2U7XG5cbiAgICAgIGZvcih2YXIgeSA9IDA7IHkgPCBwYXJlbnQubG9hZGVkU2tpZXMubGVuZ3RoOyB5Kyspe1xuICAgICAgXG4gICAgICAgIGlmKHBhcmVudC5sb2FkZWRTa2llc1t5XSA9PT0gdGhpcy5za3lOYW1lc1tpXSApXG4gICAgICAgICAgZm91bmQgPSB0cnVlO1xuICAgICAgfVxuXG4gICAgICBpZighZm91bmQpe1xuICAgICAgICBfdGVtcFNreU5hbWVzLnB1c2godGhpcy5za3lOYW1lc1tpXSk7XG4gICAgICAgIHBhcmVudC5sb2FkZWRTa2llcy5wdXNoKHRoaXMuc2t5TmFtZXNbaV0pO1xuICAgICAgfVxuICAgIH1cblxuICAgIC8vTG9hZFRleHR1cmVzXG4gICAgZm9yKHZhciBpaSA9IDA7IGlpIDwgX3RlbXBTa3lOYW1lcy5sZW5ndGg7IGlpKyspe1xuICAgICAgZm9yKHZhciBpaWkgPSAwOyBpaWkgPCA2OyBpaWkrKyl7XG5cbiAgICAgICAgdGhpcy5jdXJyZW50U2t5TmFtZSA9IF90ZW1wU2t5TmFtZXNbaWldO1xuICAgICAgICBpZih0aGlzLmlzTW9iaWxlKSB0aGlzLmN1cnJlbnRTa3lOYW1lICs9IFwiX21vYmlsZVwiO1xuXG4gICAgICAgIHRoaXMuaW1hZ2VMb2FkZXIubG9hZCggJ2ltZy9za3kvJysgdGhpcy5jdXJyZW50U2t5TmFtZSArJy9wYW5vXycrIGlpaSArJy5qcGcnLCBmdW5jdGlvbigpe1xuICAgICAgICAgIHBhcmVudC5za3lib3hMb2FkKCk7XG4gICAgICAgIH0pOyAgICBcbiAgICAgIH1cbiAgICB9XG4gIH0sXG5cbiAgcmVjcmVhdGVTa3k6IGZ1bmN0aW9uIChfZm9sZGVyTmFtZSwgX25ld1Bvcykge1xuXG4gICAgVHdlZW5NYXgudG8odGhpcy50cmFuc2l0aW9uLm1hdGVyaWFsLCB0b3AuZmFkZU91dCAse29wYWNpdHk6IDEsIG9uQ29tcGxldGU6dGhpcy50cmFuc2l0aW9uRW5kLCBvbkNvbXBsZXRlUGFyYW1zOltfZm9sZGVyTmFtZSwgX25ld1BvcywgdGhpc119KTtcblxuICB9LFxuXG4gIHRyYW5zaXRpb25FbmQ6IGZ1bmN0aW9uIChfZm9sZGVyTmFtZSwgX25ld1BvcywgX3Njb3BlKSB7XG5cbiAgICBfbmV3UG9zID0gdHlwZW9mIF9uZXdQb3MgIT09ICd1bmRlZmluZWQnID8gX25ld1BvcyA6IG5ldyBUSFJFRS5WZWN0b3IzKCBfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi54LCBfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi55LCBfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi56ICk7XG5cbiAgICBpZihfc2NvcGUudmlld2VyLmlzTW9iaWxlKSBfZm9sZGVyTmFtZSArPSBcIl9tb2JpbGVcIjtcblxuICAgIHZhciB1cmxzTmV3ID0gW1xuICAgICAgJ2ltZy9za3kvJyArIF9mb2xkZXJOYW1lICsgJy9wYW5vXzIuanBnJyxcbiAgICAgICdpbWcvc2t5LycgKyBfZm9sZGVyTmFtZSArICcvcGFub18wLmpwZycsXG4gICAgICAnaW1nL3NreS8nICsgX2ZvbGRlck5hbWUgKyAnL3Bhbm9fNC5qcGcnLFxuICAgICAgJ2ltZy9za3kvJyArIF9mb2xkZXJOYW1lICsgJy9wYW5vXzUuanBnJyxcbiAgICAgICdpbWcvc2t5LycgKyBfZm9sZGVyTmFtZSArICcvcGFub18xLmpwZycsXG4gICAgICAnaW1nL3NreS8nICsgX2ZvbGRlck5hbWUgKyAnL3Bhbm9fMy5qcGcnXG4gICAgXTtcblxuICAgIF9zY29wZS5jdWJlbWFwID0gX3Njb3BlLmN1YmVUZXhMb2FkZXIubG9hZCh1cmxzTmV3LCBmdW5jdGlvbihtYXApe1xuICAgICAgX3Njb3BlLnNreVNoYWRlci51bmlmb3Jtc1sgXCJ0Q3ViZVwiIF0udmFsdWUgPSBtYXA7XG4gICAgfSk7XG5cblxuICAgIF9zY29wZS52aWV3ZXIuY2FtZXJhLnBvc2l0aW9uLnNldChfbmV3UG9zLngsIF9uZXdQb3MueSwgX25ld1Bvcy56KTtcbiAgICBfc2NvcGUudmlld2VyLmNvbnRyb2xzLnJlc2V0U2Vuc29yKCk7XG5cbiAgICBfc2NvcGUuc2t5Qm94LnBvc2l0aW9uLnNldChfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi54LCBfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi55LCBfc2NvcGUudmlld2VyLmNhbWVyYS5wb3NpdGlvbi56KTtcbiAgICBfc2NvcGUudHJhbnNpdGlvbi5wb3NpdGlvbi5zZXQoX3Njb3BlLnZpZXdlci5jYW1lcmEucG9zaXRpb24ueCwgX3Njb3BlLnZpZXdlci5jYW1lcmEucG9zaXRpb24ueSwgX3Njb3BlLnZpZXdlci5jYW1lcmEucG9zaXRpb24ueik7XG5cbiAgICBUd2Vlbk1heC50byhfc2NvcGUudHJhbnNpdGlvbi5tYXRlcmlhbCwgdG9wLmZhZGVJbiwge29wYWNpdHk6MH0pO1xuXG4gIH1cbn07Il19
