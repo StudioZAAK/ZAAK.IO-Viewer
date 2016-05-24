@@ -72,6 +72,8 @@ var Viewer = function(){
 
   // Apply VR headset positional data to camera.
   controls = new THREE.VRControls(camera);
+  controls.standing = false;
+
 
   // Apply VR stereo rendering to renderer.
   effect = new THREE.VREffect(renderer);
@@ -128,7 +130,7 @@ var Viewer = function(){
 
     manager = new WebVRManager(renderer, effect, params);
 
-    manager.startMode = top.managerId;
+    //manager.startMode = top.managerId;
 
     play();
 
@@ -317,14 +319,18 @@ var Viewer = function(){
 
     }else{
 
+
+
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
         hoverObject = intersectsClean;
         dispatch( rayHoverStart[ hoverObject.uuid ] );
       }
 
+
+
       //If its a V2 disable the LookAt Activation
-      if(manager.getViewer().id == "CardboardV2")
-        return;
+      // if(manager.getViewer().id == "CardboardV2")
+      //   return;
 
       //Do we look at the object we activated just before
       if(intersectsClean === eventObject)
@@ -423,17 +429,12 @@ var Viewer = function(){
     frameDelta = (time-prevTime)/1000; // formated to seconds
 
     //Raycaster Update
-    if (manager == 2)
+    if (manager.isVRCompatible)
       raycasting();
 
     // Update VR headset position and apply to camera.
     controls.update();
 
-    // Sprite Animation Update
-    // for(var a = 0; a < scope.allPlugins.length; a++){ 
-    //   if (typeof scope.allPlugins[a].update === "function")
-    //     scope.allPlugins[a].update(frameDelta);
-    // }
     for (var property in scope.allPlugins) {
       if (scope.allPlugins.hasOwnProperty(property)) {
         if (typeof scope.allPlugins[property].update === "function")
@@ -445,7 +446,7 @@ var Viewer = function(){
     dispatch( events.update, { time: time, delta: time - prevTime } );
 
     //If an object get touched/clicked do it's update function
-    if(!manager.mode == 3 && manager.getViewer().id !== "CardboardV1" && eventObject !== null)
+    if(!manager.mode == 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
@@ -460,7 +461,7 @@ var Viewer = function(){
   ///////////////////////
   function clickCast(_x, _y, _type){
 
-    if(manager.mode == 3 && manager.getViewer().id == "CardboardV2"){
+    if(manager.mode == 3 ){//&& manager.getViewer().id == "CardboardV2"){
 
       //Set ray to forward vector from the camera
       var vector = new THREE.Vector3( 0, 0, -1 );
@@ -571,16 +572,16 @@ var Viewer = function(){
 
   function onDocumentMouseDown( event ) {
 
-    if(manager.mode != 3){
+    // if(manager.mode != 3){
       clickCast(event.clientX, event.clientY, "start");
 
       dispatch( events.mousedown, event );
-    }
+    // }
   }
 
   function onDocumentMouseUp( event ) {
 
-    if(manager.mode != 3) {
+    // if(manager.mode != 3) {
       if(eventObject !== null && rayEnd[eventObject.uuid]) {
          
         dispatch( rayEnd[ eventObject.uuid ] );
@@ -589,24 +590,25 @@ var Viewer = function(){
       }
 
       dispatch( events.mouseup, event );
-    }
+    // }
   }
 
   function onDocumentMouseMove( event ) {
 
-    if(manager.mode != 3){
+    // if(manager.mode != 3){
       dispatch( events.mousemove, event );
 
       clickCast(event.clientX, event.clientY, "hover");
-    }
+    // }
   }
 
   function onDocumentTouchStart( event ) {
 
-    if(manager.mode == 3 && manager.getViewer().id == "CardboardV1"){
-      lookAtTime = maxLookTime;
-      return;
-    }
+    //v1 quickjump
+    // if(manager.mode == 3 ){//&& manager.getViewer().id == "CardboardV1"){
+    //   lookAtTime = maxLookTime;
+    //   return;
+    // }
 
     var touch0 = event.changedTouches[0];
 
@@ -753,6 +755,21 @@ var Viewer = function(){
     camera.updateProjectionMatrix();
 
     effect.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  var display;
+
+  // Get the HMD, and if we're dealing with something that specifies
+  // stageParameters, rearrange the scene.
+  function setupStage() {
+    navigator.getVRDisplays().then(function(displays) {
+      if (displays.length > 0) {
+        display = displays[0];
+        if (display.stageParameters) {
+          //setStageDimensions(display.stageParameters);
+        }
+      }
+    });
   }
 
   this.takeScreenshot = function() {
