@@ -5,8 +5,17 @@
 	"project": {
 		"shadows": true,
 		"vr": false,
-		"backgroundColor": 13421772,
-		"fog": null
+		"backgroundColor": 12743852,
+		"fog": {
+			"name": "",
+			"color": {
+				"r": 0.41568627450980394,
+				"g": 0.6549019607843137,
+				"b": 0.35294117647058826
+			},
+			"density": 0.02
+		},
+		"fogColor": 6989658
 	},
 	"camera": {
 		"metadata": {

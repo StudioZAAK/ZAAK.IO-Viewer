@@ -10,6 +10,7 @@ function iframeDidLoad() {
     var loadTime = Date.now() - startTime;
     console.log("Iframe loaded in " + loadTime/1000 + " seconds");
 
+    document.getElementById('framer').style.zIndex = 2;
     //Fade in
     TweenMax.to("#myIframe", fadeIn, {opacity: 1, delay:0.5});
 }
