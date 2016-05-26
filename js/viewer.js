@@ -1,5 +1,4 @@
 //ZAAK IO Viewer
-
 var Viewer = function(){
  
   var scope = this;
@@ -41,6 +40,8 @@ var Viewer = function(){
 
   var spriteAnimators = [];
 
+  var rayObjects = [];
+
   var parentFrame;
 
   //Check if device can handle WebGL
@@ -73,7 +74,6 @@ var Viewer = function(){
   // Apply VR headset positional data to camera.
   controls = new THREE.VRControls(camera);
   controls.standing = false;
-
 
   // Apply VR stereo rendering to renderer.
   effect = new THREE.VREffect(renderer);
@@ -130,7 +130,7 @@ var Viewer = function(){
 
     manager = new WebVRManager(renderer, effect, params);
 
-    //manager.startMode = top.managerId;
+    manager.startMode = top.managerId;
 
     play();
 
@@ -154,7 +154,6 @@ var Viewer = function(){
   function setScene(_scene){
 
     scope.scene = _scene;
-    console.log("init");
     //Manual Add
 
   }
@@ -198,6 +197,9 @@ var Viewer = function(){
 
       var object = scope.scene.getObjectByProperty( 'uuid', uuid, true );
 
+      rayObjects.push(object);
+
+
       if ( object === undefined ) {
 
         console.warn( 'APP.Player: Script without object.', uuid );
@@ -216,7 +218,6 @@ var Viewer = function(){
       for ( var i = 0; i < scripts.length; i ++ ) {
 
         var _script = scripts[ i ];
-        console.log(scope);
         var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, camera );
         for ( var name in functions ) {
 
@@ -233,6 +234,7 @@ var Viewer = function(){
 
             case "rayStart":
               rayStart[object.uuid].push(functions[ name ].bind( object ) );
+
             break;
 
             case "rayUpdate":
@@ -300,7 +302,7 @@ var Viewer = function(){
     raycaster.set( camera.position, vector.normalize() );
 
     // calculate objects intersecting the picking ray
-    var intersects = raycaster.intersectObjects( scope.scene.children, true );
+    var intersects = raycaster.intersectObjects( rayObjects );
 
     //if nothing got hit
     if(intersects.length === 0){
@@ -319,18 +321,15 @@ var Viewer = function(){
 
     }else{
 
-
-
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
         hoverObject = intersectsClean;
         dispatch( rayHoverStart[ hoverObject.uuid ] );
       }
 
-
-
       //If its a V2 disable the LookAt Activation
       // if(manager.getViewer().id == "CardboardV2")
-      //   return;
+      //Removed V1 Support for now
+      return;
 
       //Do we look at the object we activated just before
       if(intersectsClean === eventObject)
@@ -345,6 +344,7 @@ var Viewer = function(){
         }
       }
 
+      //V1 lookat activation
       if(tempLookAtObject === intersectsClean){
 
         lookAtTime += frameDelta;
@@ -377,21 +377,14 @@ var Viewer = function(){
   //Returns the first object hit ( excluding some special cases )
   function sortIntersects(_intersects){
 
-    for(var iClean = 0; iClean < _intersects.length; iClean++){
+    for(var y = 0; y < _intersects.length; y++){
 
       //Don't get crosshair and MoveToObjects
-      if( !_intersects[iClean].object.position.equals(camera.position)){
-        // console.log(_intersects[iClean].object);
-        if(rayStart[ _intersects[iClean].object.uuid] ){//|| // should suffice
-        // rayUpdate[ _intersects[iClean].object.uuid] ||
-        // rayHover[ _intersects[iClean].object.uuid] ||
-        // rayEnd[ _intersects[iClean].object.uuid]){
-          return _intersects[iClean].object;
-
-        }else{
-
-          return null;
-        }
+      if( !_intersects[y].object.position.equals(camera.position)){
+        if(rayStart[ _intersects[y].object.uuid] )
+          return _intersects[y].object;
+        else
+          return null;   
       }
     }
     return null;
@@ -419,6 +412,7 @@ var Viewer = function(){
   // Request animation frame loop function
   function animate( time ) {
 
+    //TODO: Remove and put into mode switch
     if (manager.mode == 3){
       document.getElementById ("crosshair").style.display = "block";
     }  else {
@@ -436,17 +430,15 @@ var Viewer = function(){
     controls.update();
 
     for (var property in scope.allPlugins) {
-      if (scope.allPlugins.hasOwnProperty(property)) {
-        if (typeof scope.allPlugins[property].update === "function")
-          scope.allPlugins[property].update(frameDelta);
-      }
+      if (scope.allPlugins.hasOwnProperty(property) && typeof scope.allPlugins[property].update === "function")
+        scope.allPlugins[property].update(frameDelta);
     }
 
     //Update Scripts
     dispatch( events.update, { time: time, delta: time - prevTime } );
 
     //If an object get touched/clicked do it's update function
-    if(!manager.mode == 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
+    if(!manager.mode === 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
