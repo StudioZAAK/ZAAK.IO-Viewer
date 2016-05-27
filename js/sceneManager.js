@@ -5,6 +5,11 @@ var fadeIn = 1.1;
 var loadedSkies = [];
 var startTime = Date.now();
 
+function init(){
+
+    animate();
+}
+
 function iframeDidLoad() {
 
     var loadTime = Date.now() - startTime;
@@ -40,4 +45,11 @@ function loadNewSite(_subsite){
     console.log(_subsite);
     document.getElementById('myIframe').src = _subsite;
 
+}
+
+function animate(){
+
+    console.log(managerId);
+
+    requestAnimationFrame(animate);
 }

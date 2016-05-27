@@ -39,10 +39,10 @@
 <script src="js/third_party/webvr-manager.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script>
 <script src="js/viewer.js"></script>
-<script src="js/skyboxes.js"></script>
+<!-- <script src="js/skyboxes.js"></script>
 <script src="js/ManualAdd.js"></script>
 <script src="js/SpriteAnimator.js"></script>
-
+ -->
 <!-- Trash ? -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js
 "></script>
@@ -52,15 +52,15 @@
   "use strict";
   var viewer = new Viewer();
 
-  var skyboxes = new Skyboxes(viewer, ["1a", "1b"]);
+  // var skyboxes = new Skyboxes(viewer, ["1a", "1b"]);
 
-  viewer.allPlugins.push(skyboxes);
+  // viewer.allPlugins.push(skyboxes);
 
-  var manualAdd = new ManualAdd(viewer);
+  // var manualAdd = new ManualAdd(viewer);
 
-  viewer.allPlugins.push(manualAdd);
+  // viewer.allPlugins.push(manualAdd);
 
-  viewer.loadJSON("scenes/zaak.json");
+  viewer.loadJSON("scenes/zaak_anna.json");
 
 </script>
 </html>

@@ -1,4 +1,5 @@
 //ZAAK IO Viewer
+'use strict';
 var Viewer = function(){
  
   var scope = this;
@@ -9,11 +10,10 @@ var Viewer = function(){
 
   var objLoader = new THREE.ObjectLoader( preload );
   var xhrLoader = new THREE.XHRLoader( preload );
-  var jsonLoader = new THREE.JSONLoader();
+  // var jsonLoader = new THREE.JSONLoader();
 
   var mouse = new THREE.Vector2(0,0);
 
-  var raycastingActive = true;
   var tempLookAtObject = null; //temp: object we are charging up, old: object we activated
   var eventObject = null;
   var hoverObject = null;
@@ -131,6 +131,8 @@ var Viewer = function(){
     manager = new WebVRManager(renderer, effect, params);
 
     manager.startMode = top.managerId;
+
+    manager.on('modechange', changeCall);
 
     play();
 
@@ -409,15 +411,19 @@ var Viewer = function(){
     
   }
 
-  // Request animation frame loop function
-  function animate( time ) {
+  //gets called on manager change mode
+  function changeCall(){
 
-    //TODO: Remove and put into mode switch
     if (manager.mode == 3){
       document.getElementById ("crosshair").style.display = "block";
     }  else {
       document.getElementById ("crosshair").style.display = "none";
     }
+
+  }
+
+  // Request animation frame loop function
+  function animate( time ) {
 
     //Get frame delta time
     frameDelta = (time-prevTime)/1000; // formated to seconds
@@ -438,7 +444,7 @@ var Viewer = function(){
     dispatch( events.update, { time: time, delta: time - prevTime } );
 
     //If an object get touched/clicked do it's update function
-    if(!manager.mode === 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
+    if(manager.mode === 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
@@ -647,9 +653,23 @@ var Viewer = function(){
   //Exit to another website
   this.exit = function(_name){
 
+//     var url = scope.parentFrame.location.href;
+
+//     //url, 'start_mode', Modes.VR);
+// // Util.appendQueryParameter = function(url, key, value) {
+// //   // Determine delimiter based on if the URL already GET parameters in it.
+//     var delimiter = (url.indexOf('?') < 0 ? '?' : '&');
+//     url += delimiter + 'start_mode' + '=' + manager.mode;
+
+//     scope.parentFrame.location.href = url;
+      //   return;
+
     scope.parentFrame.managerId = manager.mode;
 
     scope.parentFrame.newSite(_name);
+
+    // manager.mode;
+
 
   };
 
