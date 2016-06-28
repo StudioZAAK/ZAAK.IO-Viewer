@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>EmbedVR</title>
+  <title>Inspire</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   <meta name="mobile-web-app-capable" content="yes">
@@ -9,18 +9,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="css/style.css">
 
+
 </head>
-
 <body>
-
-  <div id="framer">
-    <iframe id="myIframe" src="viewer.html" allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency='true' scrolling='no'  style="opacity: 0;">
-        Your browser doesn't support iframes
-    </iframe>
+  <div class="logo">
+    <img src="img/logo.png" height="24px" width="auto">
   </div>
 
-
-    <div id="loader">
+  <div id="loader">
     <div class="left-halfLoader">
       <article>
         <div class="Absolute-Center"><img src="img/preloader.gif" width="40px" height="auto"></div>
@@ -34,19 +30,74 @@
   </div>
 
 </body>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script>
-<script src="js/sceneManager.js"></script>
-
-<script src="scenes/jumping.js"></script>
-
-<script type="text/javascript">
-
-        setTimeout(function() {
-            document.getElementById('myIframe').contentWindow.viewer.loadJSON('scenes/zaak.json');
-            //document.getElementById('myIframe').contentWindow.viewer.startScene(jumping);
-        }, 1000);
+<script>
 
 </script>
+<script>
+/*
+ * Debug parameters.
+ */
+WebVRConfig = {
+  /**
+   * webvr-polyfill configuration
+   */
 
+  // Forces availability of VR mode.
+  // FORCE_ENABLE_VR: true, // Default: false.
+  // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+  //K_FILTER: 0.98, // Default: 0.98.
+  // How far into the future to predict during fast motion.
+  //PREDICTION_TIME_S: 0.040, // Default: 0.040 (in seconds).
+  // Flag to disable touch panner. In case you have your own touch controls
+  //TOUCH_PANNER_DISABLED: true, // Default: false.
+  // Enable yaw panning only, disabling roll and pitch. This can be useful for
+  // panoramas with nothing interesting above or below.
+  //YAW_ONLY: true, // Default: false.
+  // Enable the deprecated version of the API (navigator.getVRDevices).
+  // ENABLE_DEPRECATED_API: true, // Default: false.
+  // Scales the recommended buffer size reported by WebVR, which can improve
+  // performance. Making this very small can lower the effective resolution of
+  // your scene.
+  // BUFFER_SCALE: 1.0, // default: 1.0
+  // Allow VRDisplay.submitFrame to change gl bindings, which is more
+  // efficient if the application code will re-bind it's resources on the
+  // next frame anyway.
+  // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
+  // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
+  // and gl.TEXTURE_BINDING_2D for texture unit 0
+  // Warning: enabling this might lead to rendering issues.
+  //DIRTY_SUBMIT_FRAME_BINDINGS: true // default: false
+};
+</script>
+<script src="js/third_party/es6-promise.js"></script> 
+<script src="js/third_party/three.min.js"></script>
+<script src="js/third_party/VRControls.js"></script>
+<script src="js/third_party/VREffect.js"></script>
+<script src="js/third_party/webvr-polyfill.js"></script>
+<script src="js/third_party/webvr-manager.js"></script>
+<!--<script src="js/third_party/TweenMax.min.js"></script>-->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script> 
+<script src="js/viewer.js"></script>
+
+<!-- plugins -->
+<script src="build/plugins.js"></script>
+<!-- <script src="src/plugins/skyboxes.js"></script>
+<script src="src/plugins//ManualAdd.js"></script>
+<script src="src/plugins//SpriteAnimator.js"></script> -->
+
+<!-- Trash ? -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js
+"></script>
+
+
+<!-- <script src="js/third_party/stats.js"></script> -->
+<script type="text/javascript">
+  "use strict";
+  var viewer = new Viewer();
+
+  viewer.exit("http://beta.zaak.io/editor/projects/ae8a1360-8183-44bd-b0dd-e734345d46b5/");
+  // viewer.loadJSON("scenes/zaak.json");
+  // viewer.startScene(jumping);
+
+</script>
 </html>

@@ -10,7 +10,6 @@ var Viewer = function(){
 
   var objLoader = new THREE.ObjectLoader( preload );
   var xhrLoader = new THREE.XHRLoader( preload );
-  // var jsonLoader = new THREE.JSONLoader();
 
   var mouse = new THREE.Vector2(0,0);
 
@@ -21,7 +20,7 @@ var Viewer = function(){
   var lookAtTime = 0.0;
   var maxLookTime = 1.1;
 
-  var prevTime; 
+  var prevTime, request; 
 
   var frameDelta;
 
@@ -34,15 +33,23 @@ var Viewer = function(){
   var rayHover = {};
   var rayHoverStart = {};
 
-  var manager;
-
   var isMobile = mobileCheck();
 
   var spriteAnimators = [];
 
   var rayObjects = [];
 
-  var parentFrame;
+  //is a project loaded
+  this.l = false;
+
+  var transitionObject = new THREE.Mesh();
+
+  var transitionGeo = new THREE.SphereGeometry( 0.4,32,32);
+  var transitionMaterial = new THREE.MeshBasicMaterial({color:0x000000, opacity:1.0, transparent:true, alphaTest:0.1, side:THREE.BackSide})
+  var transitionObject = new THREE.Mesh( transitionGeo, transitionMaterial );
+
+  var managerInit = false;
+  var useCrossHair = true;
 
   //Check if device can handle WebGL
   if ( !webglAvailable() ) {
@@ -57,14 +64,15 @@ var Viewer = function(){
   }
 
   //Setup three.js WebGL renderer
-  renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true});
   renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0xFFFFFF);
 
   // Append the canvas element created by the renderer to document body element.
   document.body.appendChild(renderer.domElement);
 
   // Create a three.js camera.
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.3, 10000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
   //Add AudioListener
   listener = new THREE.AudioListener();
@@ -73,7 +81,7 @@ var Viewer = function(){
 
   // Apply VR headset positional data to camera.
   controls = new THREE.VRControls(camera);
-  controls.standing = false;
+  // controls.standing = true;
 
   // Apply VR stereo rendering to renderer.
   effect = new THREE.VREffect(renderer);
@@ -91,6 +99,38 @@ var Viewer = function(){
   this.isMobile = isMobile;
   this.allPlugins = {};
 
+  //Transition
+  // var transition = new THREE.PlaneGeometry( 1,1,1,1 );
+
+
+  //crosshair
+  var textureLoader = new THREE.TextureLoader();
+  var mapB = textureLoader.load( "img/crosshair.png" );
+  var material = new THREE.SpriteMaterial( { map: crossHair, color: 0xffffff, fog: false } );
+  var crossHair = new THREE.Sprite( material );
+
+  // crossHair.scale.set(0.1,0.1,0.1);
+
+  startViewer();
+
+  function startViewer(){
+
+    unlockAudio(); //IOS only
+
+    // Create a VR manager helper to enter and exit VR mode.
+    var params = {
+      hideButton: false, // Default: false.
+      isUndistorted: false // Default: false.
+    };
+
+    manager = new WebVRManager(renderer, effect, params);
+
+    manager.on('modechange', changeCall);
+
+    managerInit = true;
+
+  }
+
   // Load an Editor json File
   this.loadJSON = function(file){
 
@@ -98,9 +138,43 @@ var Viewer = function(){
 
     xhrLoader.load( file, function ( text ) {
 
-        scope.startScene( JSON.parse(text) );
+      scope.l = true;
+      scope.startScene( JSON.parse(text) );
 
     } );
+  };
+
+  this.loadProject = function( uuid ){
+
+    //Unload the currentProject
+    if(scope.l)
+      scope.unloadProject();
+
+    //Load new project
+    var _url = uuid;
+
+    scope.loadJSON(_url);
+
+  };
+
+  this.unloadProject = function(){
+
+    scope.camera.position.set(0,0,0);
+    scope.scene = null;
+
+    document.removeEventListener( 'keydown', onDocumentKeyDown );
+    document.removeEventListener( 'keyup', onDocumentKeyUp );
+    document.removeEventListener( 'mousedown', onDocumentMouseDown );
+    document.removeEventListener( 'mouseup', onDocumentMouseUp );
+    document.removeEventListener( 'mousemove', onDocumentMouseMove );
+    document.removeEventListener( 'touchstart', onDocumentTouchStart );
+    document.removeEventListener( 'touchend', onDocumentTouchEnd );
+    document.removeEventListener( 'touchmove', onDocumentTouchMove );
+
+    dispatch( events.stop, arguments );
+
+    cancelAnimationFrame( request );
+
   };
 
   //The whole start up sequence once we have a parsed JSON file
@@ -119,20 +193,6 @@ var Viewer = function(){
         scope.scene.fog = new THREE.FogExp2( json.project.fogColor, json.project.fog.density );
       }
     }
-
-    unlockAudio(); //IOS only
-
-    // Create a VR manager helper to enter and exit VR mode.
-    var params = {
-      hideButton: false, // Default: false.
-      isUndistorted: false // Default: false.
-    };
-
-    manager = new WebVRManager(renderer, effect, params);
-
-    manager.startMode = top.managerId;
-
-    manager.on('modechange', changeCall);
 
     play();
 
@@ -156,7 +216,16 @@ var Viewer = function(){
   function setScene(_scene){
 
     scope.scene = _scene;
+    
+    //Add crossHair
+    if(useCrossHair)
+      scope.scene.add(crossHair);
+
     //Manual Add
+
+    //Add transition
+    transitionObject.position.copy(scope.camera.position);
+    scope.scene.add( transitionObject );
 
   }
 
@@ -236,7 +305,6 @@ var Viewer = function(){
 
             case "rayStart":
               rayStart[object.uuid].push(functions[ name ].bind( object ) );
-
             break;
 
             case "rayUpdate":
@@ -284,13 +352,48 @@ var Viewer = function(){
 
     dispatch( events.start, arguments );
 
-    scope.parentFrame = window.parent;
+    request = requestAnimationFrame( animate );
 
-    scope.parentFrame.iframeDidLoad();
-
-    animate();
+    TweenMax.to(transitionMaterial, 1.0, {opacity:0, onComplete:scope.fadeComplete});
 
   }
+
+  this.fadeComplete = function(){
+    scope.scene.remove(transitionObject);
+    // document.getElementById("loader").style.display = 'none';
+    TweenMax.to('#loader', 0.4, {opacity:0});
+
+  };
+
+  //Exit to another website
+  this.exit = function(_url){
+
+    xhrLoader.crossOrigin = '';
+
+    var _split = _url.split('/');
+
+    var url;
+    
+    if(_split[_split.length-2] !== 'viewer')
+      url = 'http://beta.zaak.io/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
+    else
+      url = 'http://beta.zaak.io/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
+
+
+    xhrLoader.load( url, function ( text ) {
+
+      var _json = JSON.parse(text);
+
+
+      transitionObject.position.copy(scope.camera.position);
+      scope.scene.add( transitionObject );
+
+      TweenMax.to(transitionMaterial, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:['http://beta.zaak.io' + _json.scenes[0].data ]}); //onCompleteParams: [subsite]
+      TweenMax.to('#loader', 0.3, {opacity:1});
+
+
+    } );
+  };
 
   ///////////////////////
   //Runtime - Functions
@@ -309,6 +412,14 @@ var Viewer = function(){
     //if nothing got hit
     if(intersects.length === 0){
 
+      //default CrossHair
+      if(useCrossHair){
+        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -100 );
+        vec.applyQuaternion( scope.camera.quaternion );
+
+        crossHair.position.copy( vec );
+      }
+
       resetRaycaster();
       return;
     }  
@@ -322,6 +433,15 @@ var Viewer = function(){
       resetRaycaster();
 
     }else{
+
+      if(useCrossHair){
+        var _l = intersectsClean.position.distanceTo(scope.camera.position);
+
+        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -_l*0.95 );
+        vec.applyQuaternion( scope.camera.quaternion );
+
+        crossHair.position.copy( vec );
+      }
 
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
         hoverObject = intersectsClean;
@@ -414,11 +534,17 @@ var Viewer = function(){
   //gets called on manager change mode
   function changeCall(){
 
-    if (manager.mode == 3){
-      document.getElementById ("crosshair").style.display = "block";
-    }  else {
-      document.getElementById ("crosshair").style.display = "none";
-    }
+    // if (manager.mode == 3){
+    //   document.getElementById ("transition").style.display = "block";
+    // }  else {
+    //   document.getElementById ("transition").style.display = "none";
+    // }
+
+    //manga
+        //console.log(renderer.getClearColor());
+
+    // renderer.setClearColor(randomColor(), 1);
+    // console.log(renderer.getClearColor());
 
   }
 
@@ -427,6 +553,14 @@ var Viewer = function(){
 
     //Get frame delta time
     frameDelta = (time-prevTime)/1000; // formated to seconds
+
+    // crossHair.position.set(scope.camera.position.x, scope.camera.position.y, scope.camera.position.z - 10);
+
+    // console.log(crossHair.);
+    // var vec = new THREE.Vector3( 0, 0, -100 );
+    // vec.applyQuaternion( scope.camera.quaternion );
+
+    // crossHair.position.copy( vec );
 
     //Raycaster Update
     if (manager.isVRCompatible)
@@ -451,7 +585,9 @@ var Viewer = function(){
     manager.render(scope.scene, camera, time);
 
     prevTime = time; 
-    requestAnimationFrame(animate);
+
+    request = requestAnimationFrame( animate );
+    
   }
 
   ///////////////////////
@@ -650,28 +786,49 @@ var Viewer = function(){
     }
   };
 
-  //Exit to another website
-  this.exit = function(_name){
 
-//     var url = scope.parentFrame.location.href;
+  // function loadNewSite( _subsite ){
 
-//     //url, 'start_mode', Modes.VR);
-// // Util.appendQueryParameter = function(url, key, value) {
-// //   // Determine delimiter based on if the URL already GET parameters in it.
-//     var delimiter = (url.indexOf('?') < 0 ? '?' : '&');
-//     url += delimiter + 'start_mode' + '=' + manager.mode;
+  //   var _url = _subsite;
 
-//     scope.parentFrame.location.href = url;
-      //   return;
+  //   switch(manager.mode){
 
-    scope.parentFrame.managerId = manager.mode;
+  //     case 2:
+  //       _url = appendQueryParameter(_url, 'no_fullscreen', 'true');
+  //       _url = appendQueryParameter(_url, 'start_mode', 2);
+  //     break;
 
-    scope.parentFrame.newSite(_name);
+  //     case 3:
+  //       _url = appendQueryParameter(_url, 'no_fullscreen', 'true');
+  //       _url = appendQueryParameter(_url, 'start_mode', 3);
+  //     break;
+  //   }
 
-    // manager.mode;
+  //   console.log(_url);
+
+  //   document.location.href = _url;    
+  // }
+
+  // function appendQueryParameter(url, key, value) {
+  //   // Determine delimiter based on if the URL already GET parameters in it.
+  //   console.log(url);
+  //       console.log(key);
+
+  //   console.log(value);
 
 
-  };
+  //   var delimiter = (url.indexOf('?') < 0 ? '?' : '&');
+  //   url += delimiter + key + '=' + value;
+  //   return url;
+  // }
+
+  // // From http://goo.gl/4WX3tg
+  // function getQueryParameter(name) {
+  //   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  //   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+  //       results = regex.exec(location.search);
+  //   return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+  // }
 
   ///////////////////////
   //Fallback & Mobile - Functions
