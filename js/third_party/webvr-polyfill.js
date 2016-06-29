@@ -1135,9 +1135,12 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
 
   this.fullscreenElement_ = element;
   var parent = this.fullscreenElement_.parentElement;
+
+ 
   parent.insertBefore(this.fullscreenWrapper_, this.fullscreenElement_);
   parent.removeChild(this.fullscreenElement_);
   this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
+
 
   return this.fullscreenWrapper_;
 };
@@ -1154,6 +1157,8 @@ VRDisplay.prototype.removeFullscreenWrapper = function() {
   this.fullscreenWrapper_.removeChild(element);
   parent.insertBefore(element, this.fullscreenWrapper_);
   parent.removeChild(this.fullscreenWrapper_);
+
+
 
   return element;
 };
@@ -2085,6 +2090,12 @@ var kMiddleRadius = 0.75;
 // Radius of the inner hollow circle, in model units.
 var kInnerRadius = 0.3125;
 
+//Radius of the inner hollow circle of the crosshair, in model units.
+var cInnerRadius = 0.2;
+
+var cLineThinckness = 0.3;
+var cAnglePerSection = 60;
+
 // Center line thickness in DP.
 var kCenterLineThicknessDp = 4;
 
@@ -2118,6 +2129,10 @@ function CardboardUI(gl) {
   this.gearVertexCount = 0;
   this.arrowOffset = 0;
   this.arrowVertexCount = 0;
+  this.crossHairLOffset = 0;
+  this.crossHairLVertexCount = 0;
+  this.crossHairROffset = 0;
+  this.crossHairRVertexCount = 0;
 
   this.projMat = new Float32Array(16);
 
@@ -2177,6 +2192,7 @@ CardboardUI.prototype.onResize = function() {
     var vertices = [];
 
     var midline = gl.drawingBufferWidth / 2;
+    var midHeight = gl.drawingBufferHeight/2 *1.06;
 
     // Assumes your canvas width and height is scaled proportionately.
     // TODO(smus): The following causes buttons to become huge on iOS, but seems
@@ -2249,6 +2265,56 @@ CardboardUI.prototype.onResize = function() {
 
     self.arrowVertexCount = (vertices.length / 2) - self.arrowOffset;
 
+    //add crossHair
+     self.crossHairLOffset = (vertices.length / 2);
+
+    // var segments = 32;
+    // var thetaStart = 0.0;
+    // var thetaLength = 3.14;
+
+    function addCrossHair(theta, r, side) {
+      var angle = (90 - theta) * DEG2RAD;
+      var x = Math.cos(angle);
+      var y = Math.sin(angle);
+      vertices.push(cInnerRadius * x * buttonScale + (midline/2)*side, cInnerRadius * y * buttonScale + midHeight);
+      vertices.push(cLineThinckness * x * buttonScale + (midline/2)*side, cLineThinckness * y * buttonScale + midHeight);
+    }
+
+    for (var i = 0; i <= 360/cAnglePerSection; i++) {
+      var segmentTheta = i * cAnglePerSection;
+
+      addCrossHair(segmentTheta, kOuterRadius, 1);
+      // addCrossHair(segmentTheta + kOuterRimEndAngle, kOuterRadius, 1);
+      // addCrossHair(segmentTheta + kInnerRimBeginAngle, kMiddleRadius, 1);
+      // addCrossHair(segmentTheta + (kAnglePerGearSection - kInnerRimBeginAngle), kMiddleRadius, 1);
+      // addCrossHair(segmentTheta + (kAnglePerGearSection - kOuterRimEndAngle), kOuterRadius, 1);
+    }
+
+    self.crossHairLVertexCount = (vertices.length / 2) - self.crossHairLOffset;
+
+    self.crossHairROffset = (vertices.length / 2);
+
+    for (var i = 0; i <= 360/cAnglePerSection; i++) {
+      var segmentTheta = i * cAnglePerSection;
+
+      addCrossHair(segmentTheta, kOuterRadius, 3);
+      // addCrossHair(segmentTheta + kOuterRimEndAngle, kOuterRadius, 3);
+      // addCrossHair(segmentTheta + kInnerRimBeginAngle, kMiddleRadius, 3);
+      // addCrossHair(segmentTheta + (kAnglePerGearSection - kInnerRimBeginAngle), kMiddleRadius, 3);
+      // addCrossHair(segmentTheta + (kAnglePerGearSection - kOuterRimEndAngle), kOuterRadius, 3);
+    }
+
+    // for ( var s = 0, i = 3, ii = 2 ; s <= segments; s ++, i += 3, ii += 2 ) {
+
+    //   var segment = thetaStart + s / segments * thetaLength;
+
+    //   vertices.push(cInnerRadius * Math.cos( segment )* buttonScale+(midline/2)*3, cInnerRadius *Math.sin( segment )* buttonScale + midHeight);
+    //   // vertices.push( cInnerRadius*Math.sin( segment )+(midline/2)*3,kOuterRadius + midHeight);
+
+    // }
+
+    self.crossHairRVertexCount = (vertices.length / 2) - self.crossHairROffset;
+
     // Buffer data
     gl.bindBuffer(gl.ARRAY_BUFFER, self.vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -2309,6 +2375,9 @@ CardboardUI.prototype.renderNoState = function() {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   gl.drawArrays(gl.TRIANGLE_STRIP, this.gearOffset, this.gearVertexCount);
   gl.drawArrays(gl.TRIANGLE_STRIP, this.arrowOffset, this.arrowVertexCount);
+  gl.drawArrays(gl.TRIANGLE_STRIP, this.crossHairLOffset, this.crossHairLVertexCount);
+  gl.drawArrays(gl.TRIANGLE_STRIP, this.crossHairROffset, this.crossHairRVertexCount);
+
 };
 
 module.exports = CardboardUI;
