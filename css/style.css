@@ -101,6 +101,7 @@ iframe {
 }
 
 .left-half {
+  pointer-events: none;
   background-color: transparent;
   position: absolute;
   left: 0px;
@@ -109,6 +110,7 @@ iframe {
 }
 
 .right-half {
+  pointer-events: none;
   background-color: transparent;
   position: absolute;
   right: 0px;

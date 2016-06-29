@@ -49,7 +49,9 @@ var Viewer = function(){
   var transitionObject = new THREE.Mesh( transitionGeo, transitionMaterial );
 
   var managerInit = false;
-  var useCrossHair = true;
+  var useCrossHair = false;
+  var divCrossHair = document.getElementById("crosshair");
+
 
   //Check if device can handle WebGL
   if ( !webglAvailable() ) {
@@ -99,17 +101,11 @@ var Viewer = function(){
   this.isMobile = isMobile;
   this.allPlugins = {};
 
-  //Transition
-  // var transition = new THREE.PlaneGeometry( 1,1,1,1 );
-
-
   //crosshair
   var textureLoader = new THREE.TextureLoader();
   var mapB = textureLoader.load( "img/crosshair.png" );
-  var material = new THREE.SpriteMaterial( { map: crossHair, color: 0xffffff, fog: false } );
-  var crossHair = new THREE.Sprite( material );
-
-  // crossHair.scale.set(0.1,0.1,0.1);
+  var material = new THREE.SpriteMaterial( { map: mapB, color: 0xffffff, fog: false } );
+  var crossHairObj = new THREE.Sprite( material );
 
   startViewer();
 
@@ -219,7 +215,7 @@ var Viewer = function(){
     
     //Add crossHair
     if(useCrossHair)
-      scope.scene.add(crossHair);
+      scope.scene.add(crossHairObj);
 
     //Manual Add
 
@@ -360,7 +356,6 @@ var Viewer = function(){
 
   this.fadeComplete = function(){
     scope.scene.remove(transitionObject);
-    // document.getElementById("loader").style.display = 'none';
     TweenMax.to('#loader', 0.4, {opacity:0});
 
   };
@@ -414,10 +409,21 @@ var Viewer = function(){
 
       //default CrossHair
       if(useCrossHair){
-        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -100 );
-        vec.applyQuaternion( scope.camera.quaternion );
 
-        crossHair.position.copy( vec );
+        var width = window.innerWidth, height = window.innerHeight;
+        var widthHalf = width / 2, heightHalf = height / 2;
+
+        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -100 );
+        vec.project(camera);
+        vec.x = ( vec.x * widthHalf ) + widthHalf;
+        vec.y = - ( vec.y * heightHalf ) + heightHalf;
+
+        //vec.x - widthHalf/2;
+        TweenMax.to("#left-half", 0.2, {left:vec.x - widthHalf/2});
+
+        // vec.applyQuaternion( scope.camera.quaternion );
+        // console.log(vec);
+        // crossHair.position.copy( vec );
       }
 
       resetRaycaster();
@@ -440,7 +446,25 @@ var Viewer = function(){
         var vec = new THREE.Vector3( camera.position.x, camera.position.y, -_l*0.95 );
         vec.applyQuaternion( scope.camera.quaternion );
 
-        crossHair.position.copy( vec );
+
+
+        crossHairObj.position.copy( vec );
+
+        var _screenPos = toScreenPosition(crossHairObj, scope.camera);
+        console.log(_screenPos);
+
+        // var width = window.innerWidth, height = window.innerHeight;
+        // var widthHalf = width / 2, heightHalf = height / 2;
+
+        // var pos = vec.clone();
+        // pos.project(scope.camera);
+        // pos.x = ( pos.x * widthHalf ) + widthHalf;
+        // pos.y = - ( pos.y * heightHalf ) + heightHalf;
+        // //vec.y = - ( vec.y * heightHalf ) + heightHalf;
+        // console.log(pos.x);
+        // //vec.x - widthHalf/2;
+        // TweenMax.to(".left-half", 0.2, {left:pos.x});
+
       }
 
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
@@ -496,6 +520,28 @@ var Viewer = function(){
     }
   }
 
+  function toScreenPosition(obj, camera)
+  {
+      var vector = new THREE.Vector3();
+
+      var widthHalf = 0.5*renderer.context.canvas.width;
+      var heightHalf = 0.5*renderer.context.canvas.height;
+
+      // obj.updateMatrixWorld();
+      console.log(obj);
+      vector.setFromMatrixPosition(obj.matrixWorld);
+      vector.project(camera);
+
+      vector.x = ( vector.x * widthHalf ) + widthHalf;
+      vector.y = - ( vector.y * heightHalf ) + heightHalf;
+
+      return { 
+          x: vector.x,
+          y: vector.y
+      };
+
+  };
+
   //Returns the first object hit ( excluding some special cases )
   function sortIntersects(_intersects){
 
@@ -533,19 +579,12 @@ var Viewer = function(){
 
   //gets called on manager change mode
   function changeCall(){
-
-    // if (manager.mode == 3){
-    //   document.getElementById ("transition").style.display = "block";
-    // }  else {
-    //   document.getElementById ("transition").style.display = "none";
-    // }
-
-    //manga
-        //console.log(renderer.getClearColor());
-
-    // renderer.setClearColor(randomColor(), 1);
-    // console.log(renderer.getClearColor());
-
+    //TODO: SAM, remove old crosshair
+    if (manager.mode == 3){
+      divCrossHair.style.display = "block"; 
+    }  else {
+      divCrossHair.style.display = "none"; 
+    }
   }
 
   // Request animation frame loop function
