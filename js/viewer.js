@@ -373,7 +373,7 @@ var Viewer = function(){
     var found = false;
 
     for(var i = 0; i < _split.length; i++){
-      if(_split[i] == "embed" || _split[i] == "projects"){
+      if(_split[i] == "embed" || _split[i] == "projects" || _split[i] == "viewer"){
         url = BASE_URL + '/api/v1/entry/' + _split[i+1] + '/?format=json';
         found = true;
         break;
@@ -416,25 +416,6 @@ var Viewer = function(){
     //if nothing got hit
     if(intersects.length === 0){
 
-      //default CrossHair
-      if(useCrossHair){
-
-        var width = window.innerWidth, height = window.innerHeight;
-        var widthHalf = width / 2, heightHalf = height / 2;
-
-        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -100 );
-        vec.project(camera);
-        vec.x = ( vec.x * widthHalf ) + widthHalf;
-        vec.y = - ( vec.y * heightHalf ) + heightHalf;
-
-        //vec.x - widthHalf/2;
-        TweenMax.to("#left-half", 0.2, {left:vec.x - widthHalf/2});
-
-        // vec.applyQuaternion( scope.camera.quaternion );
-        // console.log(vec);
-        // crossHair.position.copy( vec );
-      }
-
       resetRaycaster();
       return;
     }  
@@ -448,33 +429,6 @@ var Viewer = function(){
       resetRaycaster();
 
     }else{
-
-      if(useCrossHair){
-        var _l = intersectsClean.position.distanceTo(scope.camera.position);
-
-        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -_l*0.95 );
-        vec.applyQuaternion( scope.camera.quaternion );
-
-
-
-        crossHairObj.position.copy( vec );
-
-        var _screenPos = toScreenPosition(crossHairObj, scope.camera);
-        console.log(_screenPos);
-
-        // var width = window.innerWidth, height = window.innerHeight;
-        // var widthHalf = width / 2, heightHalf = height / 2;
-
-        // var pos = vec.clone();
-        // pos.project(scope.camera);
-        // pos.x = ( pos.x * widthHalf ) + widthHalf;
-        // pos.y = - ( pos.y * heightHalf ) + heightHalf;
-        // //vec.y = - ( vec.y * heightHalf ) + heightHalf;
-        // console.log(pos.x);
-        // //vec.x - widthHalf/2;
-        // TweenMax.to(".left-half", 0.2, {left:pos.x});
-
-      }
 
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
         hoverObject = intersectsClean;
@@ -528,28 +482,6 @@ var Viewer = function(){
       }
     }
   }
-
-  function toScreenPosition(obj, camera)
-  {
-      var vector = new THREE.Vector3();
-
-      var widthHalf = 0.5*renderer.context.canvas.width;
-      var heightHalf = 0.5*renderer.context.canvas.height;
-
-      // obj.updateMatrixWorld();
-      console.log(obj);
-      vector.setFromMatrixPosition(obj.matrixWorld);
-      vector.project(camera);
-
-      vector.x = ( vector.x * widthHalf ) + widthHalf;
-      vector.y = - ( vector.y * heightHalf ) + heightHalf;
-
-      return { 
-          x: vector.x,
-          y: vector.y
-      };
-
-  };
 
   //Returns the first object hit ( excluding some special cases )
   function sortIntersects(_intersects){
@@ -820,50 +752,6 @@ var Viewer = function(){
       }
     }
   };
-
-
-  // function loadNewSite( _subsite ){
-
-  //   var _url = _subsite;
-
-  //   switch(manager.mode){
-
-  //     case 2:
-  //       _url = appendQueryParameter(_url, 'no_fullscreen', 'true');
-  //       _url = appendQueryParameter(_url, 'start_mode', 2);
-  //     break;
-
-  //     case 3:
-  //       _url = appendQueryParameter(_url, 'no_fullscreen', 'true');
-  //       _url = appendQueryParameter(_url, 'start_mode', 3);
-  //     break;
-  //   }
-
-  //   console.log(_url);
-
-  //   document.location.href = _url;    
-  // }
-
-  // function appendQueryParameter(url, key, value) {
-  //   // Determine delimiter based on if the URL already GET parameters in it.
-  //   console.log(url);
-  //       console.log(key);
-
-  //   console.log(value);
-
-
-  //   var delimiter = (url.indexOf('?') < 0 ? '?' : '&');
-  //   url += delimiter + key + '=' + value;
-  //   return url;
-  // }
-
-  // // From http://goo.gl/4WX3tg
-  // function getQueryParameter(name) {
-  //   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  //   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-  //       results = regex.exec(location.search);
-  //   return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-  // }
 
   ///////////////////////
   //Fallback & Mobile - Functions
