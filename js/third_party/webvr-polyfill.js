@@ -2163,6 +2163,10 @@ CardboardUI.prototype.listen = function(optionsCallback, backCallback) {
   this.listener = function(event) {
     var midline = canvas.clientWidth / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor;
+    var slopAdd = 2.0;
+
+    console.log(event.clientX + " and " + event.clientY );
+
     // Check to see if the user clicked on (or around) the gear icon
     if (event.clientX > midline - buttonSize &&
         event.clientX < midline + buttonSize &&
@@ -2174,7 +2178,7 @@ CardboardUI.prototype.listen = function(optionsCallback, backCallback) {
       backCallback(event);
     }
   };
-  canvas.addEventListener('click', this.listener, false);
+  canvas.addEventListener('click', this.listener, true);//false);
 };
 
 /**
@@ -2192,7 +2196,7 @@ CardboardUI.prototype.onResize = function() {
     var vertices = [];
 
     var midline = gl.drawingBufferWidth / 2;
-    var midHeight = gl.drawingBufferHeight/2 *1.06;
+    var midHeight = gl.drawingBufferHeight/2 ;
 
     // Assumes your canvas width and height is scaled proportionately.
     // TODO(smus): The following causes buttons to become huge on iOS, but seems
