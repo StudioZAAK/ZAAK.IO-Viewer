@@ -370,12 +370,28 @@ var Viewer = function(){
     var _split = _url.split('/');
 
     var url;
-    
-    if(_split[_split.length-2] !== 'viewer')
-      url = BASE_URL + '/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
-    else
-      url =  BASE_URL + '/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
+    var found = false;
 
+    for(var i = 0; i < _split.length; i++){
+      if(_split[i] == "embed" || _split[i] == "projects"){
+        url = BASE_URL + '/api/v1/entry/' + _split[i+1] + '/?format=json';
+        found = true;
+        break;
+      }
+    }
+
+    if(!found){
+      console.error("Trying to jump to a fake url: " + _url);
+      return;
+    }
+
+    // if(_split[_split.length-2] !== 'viewer'){
+    //   if()
+    //   url = BASE_URL + '/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
+
+    // }else{
+    //   url =  BASE_URL + '/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
+    // }
 
     xhrLoader.load( url, function ( text ) {
 
