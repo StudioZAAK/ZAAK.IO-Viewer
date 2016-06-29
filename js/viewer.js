@@ -132,6 +132,8 @@ var Viewer = function(){
 
     xhrLoader.crossOrigin = '';
 
+    console.log(file);
+
     xhrLoader.load( file, function ( text ) {
 
       scope.l = true;
@@ -370,20 +372,19 @@ var Viewer = function(){
     var url;
     
     if(_split[_split.length-2] !== 'viewer')
-      url = 'http://beta.zaak.io/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
+      url = BASE_URL + '/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
     else
-      url = 'http://beta.zaak.io/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
+      url =  BASE_URL + '/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
 
 
     xhrLoader.load( url, function ( text ) {
 
       var _json = JSON.parse(text);
 
-
       transitionObject.position.copy(scope.camera.position);
       scope.scene.add( transitionObject );
 
-      TweenMax.to(transitionMaterial, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:['http://beta.zaak.io' + _json.scenes[0].data ]}); //onCompleteParams: [subsite]
+      TweenMax.to(transitionMaterial, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
       TweenMax.to('#loader', 0.3, {opacity:1});
 
 
