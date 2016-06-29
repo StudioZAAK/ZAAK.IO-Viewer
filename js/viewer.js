@@ -385,14 +385,6 @@ var Viewer = function(){
       return;
     }
 
-    // if(_split[_split.length-2] !== 'viewer'){
-    //   if()
-    //   url = BASE_URL + '/api/v1/entry/' + _split[_split.length-2] + '/?format=json';
-
-    // }else{
-    //   url =  BASE_URL + '/api/v1/entry/' + _split[_split.length-1] + '/?format=json';
-    // }
-
     xhrLoader.load( url, function ( text ) {
 
       var _json = JSON.parse(text);
@@ -596,12 +588,7 @@ var Viewer = function(){
 
   //gets called on manager change mode
   function changeCall(){
-    //TODO: SAM, remove old crosshair
-    if (manager.mode == 3){
-      divCrossHair.style.display = "block"; 
-    }  else {
-      divCrossHair.style.display = "none"; 
-    }
+
   }
 
   // Request animation frame loop function
@@ -609,14 +596,6 @@ var Viewer = function(){
 
     //Get frame delta time
     frameDelta = (time-prevTime)/1000; // formated to seconds
-
-    // crossHair.position.set(scope.camera.position.x, scope.camera.position.y, scope.camera.position.z - 10);
-
-    // console.log(crossHair.);
-    // var vec = new THREE.Vector3( 0, 0, -100 );
-    // vec.applyQuaternion( scope.camera.quaternion );
-
-    // crossHair.position.copy( vec );
 
     //Raycaster Update
     if (manager.isVRCompatible)
