@@ -103,8 +103,8 @@ var Viewer = function(){
 
   //crosshair
   var textureLoader = new THREE.TextureLoader();
-  var mapB = textureLoader.load( "img/crosshair.png" );
-  var material = new THREE.SpriteMaterial( { map: mapB, color: 0xffffff, fog: false } );
+  // var mapB = textureLoader.load( "img/crosshair.png" );
+  var material = new THREE.SpriteMaterial( { color: 0xffffff, fog: false } );
   var crossHairObj = new THREE.Sprite( material );
 
   startViewer();
