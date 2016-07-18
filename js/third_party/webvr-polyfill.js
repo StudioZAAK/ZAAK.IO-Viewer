@@ -1451,6 +1451,8 @@ function CardboardDistorter(gl) {
 
   this.bufferScale = WebVRConfig.BUFFER_SCALE;
 
+  console.log(this.bufferScale);
+
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
 
@@ -2164,8 +2166,6 @@ CardboardUI.prototype.listen = function(optionsCallback, backCallback) {
     var midline = canvas.clientWidth / 2;
     var buttonSize = kButtonWidthDp * kTouchSlopFactor;
     var slopAdd = 2.0;
-
-    console.log(event.clientX + " and " + event.clientY );
 
     // Check to see if the user clicked on (or around) the gear icon
     if (event.clientX > midline - buttonSize &&
@@ -6075,7 +6075,23 @@ function ViewerSelector() {
   } catch (error) {
     console.error('Failed to load viewer profile: %s', error);
   }
-  this.dialog = this.createDialog_(DeviceInfo.Viewers);
+  var qualityOptions = {
+    0.3: ({
+      id: 0.3,
+      label: 'low',
+    }),
+    0.5: ({
+      id: 0.5,
+      label: 'medium',
+    }),
+    1.0: ({
+      id: 1.0,
+      label: 'high',
+    }),
+  };
+
+  this.dialog = this.createDialog_(DeviceInfo.Viewers, qualityOptions);
+
   this.root = null;
 }
 ViewerSelector.prototype = new Emitter();
@@ -6106,8 +6122,11 @@ ViewerSelector.prototype.getCurrentViewer = function() {
   return DeviceInfo.Viewers[this.selectedKey];
 };
 
-ViewerSelector.prototype.getSelectedKey_ = function() {
-  var input = this.dialog.querySelector('input[name=field]:checked');
+ViewerSelector.prototype.getSelectedKey_ = function(key) {
+  var input = this.dialog.querySelector('input[name='+key+']:checked');
+
+  console.log(input);
+
   if (input) {
     return input.id;
   }
@@ -6115,11 +6134,18 @@ ViewerSelector.prototype.getSelectedKey_ = function() {
 };
 
 ViewerSelector.prototype.onSave_ = function() {
-  this.selectedKey = this.getSelectedKey_();
+  this.selectedKey = this.getSelectedKey_('viewer');
   if (!this.selectedKey || !DeviceInfo.Viewers[this.selectedKey]) {
     console.error('ViewerSelector.onSave_: this should never happen!');
     return;
   }
+
+  // this.selectedQuality = this.getSelectedKey_('quality');
+  // console.log(this.selectedQuality);
+
+  // WebVRConfig.BUFFER_SCALE = this.getSelectedKey_('quality');
+
+  //FRANKYHanky  
 
   this.emit('change', DeviceInfo.Viewers[this.selectedKey]);
 
@@ -6135,7 +6161,7 @@ ViewerSelector.prototype.onSave_ = function() {
 /**
  * Creates the dialog.
  */
-ViewerSelector.prototype.createDialog_ = function(options) {
+ViewerSelector.prototype.createDialog_ = function(options, quality) {
   var container = document.createElement('div');
   container.classList.add(CLASS_NAME);
   container.style.display = 'none';
@@ -6168,16 +6194,33 @@ ViewerSelector.prototype.createDialog_ = function(options) {
 
   dialog.appendChild(this.createH1_('Select your viewer'));
   for (var id in options) {
-    dialog.appendChild(this.createChoice_(id, options[id].label));
+    dialog.appendChild(this.createChoice_(id, 'viewer', options[id].label));
   }
 
-  dialog.appendChild(this.createH1_('Adjust Quality ( soon )'));
+  // var dialogQ = document.createElement('div');
+  // var s = dialogQ.style;
+  // s.boxSizing = 'border-box';
+  // s.position = 'fixed';
+  // s.top = '200px';
+  // s.left = '50%';
+  // s.marginLeft = (-width/2) + 'px';
+  // s.width = width + 'px';
+  // s.padding = '24px';
+  // s.overflow = 'hidden';
+  // s.background = '#fafafa';
+  // s.fontFamily = "'Roboto', sans-serif";
+  // s.boxShadow = '0px 5px 20px #666';
 
+  // dialog.appendChild(this.createH1_('Quality'));
+  // for (var id in quality) {
+  //   dialog.appendChild(this.createChoice_(id, 'quality', quality[id].label ));
+  // }
 
   dialog.appendChild(this.createButton_('Save', this.onSave_.bind(this)));
 
   container.appendChild(overlay);
   container.appendChild(dialog);
+  // container.appendChild(dialogQ);
 
   return container;
 };
@@ -6194,7 +6237,7 @@ ViewerSelector.prototype.createH1_ = function(name) {
   return h1;
 };
 
-ViewerSelector.prototype.createChoice_ = function(id, name) {
+ViewerSelector.prototype.createChoice_ = function(id, group, name) {
   /*
   <div class="choice">
   <input id="v1" type="radio" name="field" value="v1">
@@ -6210,7 +6253,7 @@ ViewerSelector.prototype.createChoice_ = function(id, name) {
   input.setAttribute('id', id);
   input.setAttribute('type', 'radio');
   input.setAttribute('value', id);
-  input.setAttribute('name', 'field');
+  input.setAttribute('name', group);
 
   var label = document.createElement('label');
   label.style.marginLeft = '4px';

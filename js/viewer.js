@@ -5,7 +5,6 @@ var Viewer = function(){
   var scope = this;
 
   var renderer, camera, raycaster, listener;
-  // var staticScene, userScene;
 
   var preload = new THREE.LoadingManager();
 
@@ -77,6 +76,10 @@ var Viewer = function(){
   // Create a three.js camera.
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
+  listener = new THREE.AudioListener();
+  listener.name = 'Listener';
+  camera.add( listener );
+
   // Apply VR stereo rendering to renderer.
   effect = new THREE.VREffect(renderer);
   effect.setSize(window.innerWidth, window.innerHeight);
@@ -103,15 +106,7 @@ var Viewer = function(){
     //Scene setup
 
 
-    // Create a VR manager helper to enter and exit VR mode.
-    var params = {
-      hideButton: false, // Default: false.
-      isUndistorted: false // Default: false.
-    };
 
-    scope.manager = new WebVRManager(renderer, effect, params);
-
-    scope.manager.on('modechange', changeCall);
 
   }
 
@@ -197,6 +192,25 @@ var Viewer = function(){
     if(json.project.crosshair !== null){
       scope.useCrossHair = json.project.crosshair;
     }
+
+    var quality = 0.5;
+    if(json.project.quality !== undefined){
+      quality = json.project.quality;
+      WebVRConfig.BUFFER_SCALE = quality;
+    }
+
+    // Create a VR manager helper to enter and exit VR mode.
+    var params = {
+      hideButton: false, // Default: false.
+      isUndistorted: false, // Default: false.
+      BUFFER_SCALE: quality
+    };
+
+    scope.manager = new WebVRManager(renderer, effect, params);
+
+
+
+    scope.manager.on('modechange', changeCall);
 
     play();
 
