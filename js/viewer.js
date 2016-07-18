@@ -1,10 +1,11 @@
 //ZAAK IO Viewer
-'use strict';
 var Viewer = function(){
+  'use strict';
  
   var scope = this;
 
-  var renderer, camera, raycaster, listener, pivot;
+  var renderer, camera, raycaster, listener;
+  // var staticScene, userScene;
 
   var preload = new THREE.LoadingManager();
 
@@ -39,22 +40,19 @@ var Viewer = function(){
 
   var rayObjects = [];
   this.crossHairObjects = [];
-  var originalScale = 1;
+  var originalScale = 0.6;
+  var currentCrossScale = 0.0;
+  var crossModifier = { scale: 1.0 };
 
   //is a project loaded
   this.l = false;
 
-  var transitionObject = new THREE.Mesh();
+  var transitionObject, crossHairObj; 
 
-  var transitionGeo = new THREE.SphereGeometry( 0.4,32,32);
-  var transitionMaterial = new THREE.MeshBasicMaterial({color:0x000000, opacity:1.0, transparent:true, alphaTest:0.1, side:THREE.BackSide})
-  var transitionObject = new THREE.Mesh( transitionGeo, transitionMaterial );
+  transitionObject = new THREE.Mesh();
+
+  transitionObject = new THREE.Mesh( new THREE.SphereGeometry( 0.4, 16, 16 ), new THREE.MeshBasicMaterial({color:0x000000, opacity:1.0, transparent:true, alphaTest:0.1, side:THREE.BackSide}) );
   transitionObject.name = "transition";
-
-  var managerInit = false;
-  // this.useCrossHair = true;
-  var divCrossHair = document.getElementById("crosshair");
-
 
   //Check if device can handle WebGL
   if ( !webglAvailable() ) {
@@ -79,15 +77,6 @@ var Viewer = function(){
   // Create a three.js camera.
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
-  //Add AudioListener
-  listener = new THREE.AudioListener();
-  listener.name = 'Listener';
-  camera.add( listener );
-
-  // Apply VR headset positional data to camera.
-  controls = new THREE.VRControls(camera);
-  // controls.standing = true;
-
   // Apply VR stereo rendering to renderer.
   effect = new THREE.VREffect(renderer);
   effect.setSize(window.innerWidth, window.innerHeight);
@@ -103,25 +92,16 @@ var Viewer = function(){
   this.camera = camera;
   this.isMobile = isMobile;
   this.allPlugins = {};
-  this.manager;
-
-
-  var circleGeometry = new THREE.RingGeometry( 0.02, 0.04, 16 );
-       
-   var crossHairObj = new THREE.Mesh( circleGeometry, new THREE.MeshBasicMaterial( {
-      depthTest:false,
-      depthWrite:false,
-      color: 0xffffff,
-      opacity: 1.0,
-      transparent: true
-    } ) );
-    crossHairObj.name = "crossHair";
+  // this.manager;
 
   startViewer();
 
   function startViewer(){
 
     unlockAudio(); //IOS only
+
+    //Scene setup
+
 
     // Create a VR manager helper to enter and exit VR mode.
     var params = {
@@ -132,8 +112,6 @@ var Viewer = function(){
     scope.manager = new WebVRManager(renderer, effect, params);
 
     scope.manager.on('modechange', changeCall);
-
-    managerInit = true;
 
   }
 
@@ -166,9 +144,6 @@ var Viewer = function(){
   };
 
   this.unloadProject = function(){
-
-    pivot.updateProjectionMatrix();
-    THREE.SceneUtils.detach(scope.camera, pivot, scope.scene);
 
     scope.camera.position.set(0,0,0);
     scope.scene = null;
@@ -209,14 +184,13 @@ var Viewer = function(){
       }
     }
 
-    if(json.project.shadows !== null){
+    if(json.project.shadows !== undefined){
 
-      //renderer.shadowMap.enabled = true;
-      // scope.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.enabled = true;
     }
 
-    if(json.project.gazeTime !== null){
-      
+    if(json.project.gazeTime !== undefined){
+    
       maxLookTime = json.project.gazetime;
     }
 
@@ -247,25 +221,42 @@ var Viewer = function(){
 
     scope.scene = _scene;
     
-    //Add crossHair
-    // if(scope.useCrossHair)
+    //Add crossHair raycasting targets
     scope.crossHairObjects = _scene.children;
-    // console.log(crossHairObjects);
-
-
-    // scope.scene.add(crossHairObj);
 
     //Manual Add
 
+    //Add camera once a new scene is added
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+    //Add AudioListener
+    listener = new THREE.AudioListener();
+    listener.name = 'Listener';
+    camera.add( listener );
+
+    // Apply VR headset positional data to camera.
+    controls = new THREE.VRControls(camera);
+
+    // Apply VR stereo rendering to renderer.
+    effect = new THREE.VREffect(renderer);
+    effect.setSize(window.innerWidth, window.innerHeight);
+       
+    crossHairObj = new THREE.Mesh( new THREE.RingGeometry( 0.02, 0.04, 16 ), new THREE.MeshBasicMaterial( {
+      depthTest:false,
+      depthWrite:false,
+      color: 0x000000,
+      opacity: 1.0,
+      transparent: true
+    } ) );
+    crossHairObj.name = "crossHair";
+
+    camera.add(crossHairObj);
+
+    scope.scene.add(camera);
+
     //Add transition
-
-    transitionObject.position.copy(scope.camera.position);
+    transitionObject.position.copy(camera.position);
     scope.scene.add( transitionObject );
-    scope.camera.add(crossHairObj);
-
-    scope.scene.add(scope.camera);
-
-    // crossHairObjects.pop();
 
   }
 
@@ -394,51 +385,13 @@ var Viewer = function(){
 
     request = requestAnimationFrame( animate );
 
-    TweenMax.to(transitionMaterial, 1.0, {opacity:0, onComplete:scope.fadeComplete});
-
+    TweenMax.to(transitionObject.material, 1.0, {opacity:0, onComplete:scope.fadeComplete});
   }
 
   this.fadeComplete = function(){
     scope.scene.remove(transitionObject);
     TweenMax.to('#loader', 0.4, {opacity:0});
 
-  };
-
-  //Exit to another website
-  this.exit = function(_url){
-
-    xhrLoader.crossOrigin = '';
-
-    var _split = _url.split('/');
-
-    var url;
-    var found = false;
-
-    for(var i = 0; i < _split.length; i++){
-      if(_split[i] == "embed" || _split[i] == "projects" || _split[i] == "viewer"){
-        url = BASE_URL + '/api/v1/entry/' + _split[i+1] + '/?format=json';
-        found = true;
-        break;
-      }
-    }
-
-    if(!found){
-      console.error("Trying to jump to a fake url: " + _url);
-      return;
-    }
-
-    xhrLoader.load( url, function ( text ) {
-
-      var _json = JSON.parse(text);
-
-      transitionObject.position.copy(scope.camera.position);
-      scope.scene.add( transitionObject );
-
-      TweenMax.to(transitionMaterial, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
-      TweenMax.to('#loader', 0.3, {opacity:1});
-
-
-    } );
   };
 
   ///////////////////////
@@ -452,44 +405,42 @@ var Viewer = function(){
 
     raycaster.set( camera.position, vector.normalize() );
 
-    // calculate objects intersecting the picking ray
-    var intersects = raycaster.intersectObjects( rayObjects );
-
-
     //Crosshair
-    // console.log(scope.scene);
-    if(scope.manager.mode === 3){
-      var allIntersects = raycaster.intersectObjects( scope.crossHairObjects );
+    var allIntersects = raycaster.intersectObjects( scope.crossHairObjects );
 
-        var zDistance = 100.0;
+      var zDistance = 100.0;
 
-      if(allIntersects.length > 0){
-        for(var i = 0; i < allIntersects.length; i++){ // -1 to exclude 
+    if(allIntersects.length > 0){
+      for(var i = 0; i < allIntersects.length; i++){ // -1 to exclude 
 
-          if(allIntersects[i].object.name !== "crossHair" && allIntersects[i].distance > 0.0){
-            // console.log(i);
-             // console.log(allIntersects[i].object.name);
-            zDistance = allIntersects[i].distance * 0.95;
+        if(allIntersects[i].object.name !== "crossHair" && allIntersects[i].distance > 0.0){
 
-            break;
-          }
+          zDistance = allIntersects[i].distance * 0.95;
+
+          break;
         }
       }
-        
-        var vec = new THREE.Vector3( camera.position.x, camera.position.y, -zDistance );
-
-      crossHairObj.position.copy( vec );
-      crossHairObj.scale.set(originalScale*zDistance,originalScale*zDistance ,originalScale* zDistance);
     }
+      
+    var vec = new THREE.Vector3( 0,0,-zDistance);
+
+    crossHairObj.position.copy( vec );
+
+    currentCrossScale = originalScale*zDistance * crossModifier.scale;
+    crossHairObj.scale.set(currentCrossScale,currentCrossScale,currentCrossScale);
+    
+
+    raycaster.set( camera.position, vector.normalize() );
+
+    // calculate objects intersecting the picking ray
+    var intersects = raycaster.intersectObjects( rayObjects );
 
     //if nothing got hit
     if(intersects.length === 0){
 
       resetRaycaster();
-
       return;
     }  
-
 
     //Check all the intersects and give back 
     //the first visible and event bound object
@@ -503,14 +454,12 @@ var Viewer = function(){
     }else{
 
       if(hoverObject !== intersectsClean && rayHoverStart[intersectsClean.uuid]){
+        TweenMax.to(crossModifier, 0.3, {scale : 1.4});
+        TweenMax.to(crossHairObj.material, 0.3, {opacity:0.3});
+
         hoverObject = intersectsClean;
         dispatch( rayHoverStart[ hoverObject.uuid ] );
       }
-
-      //If its a V2 disable the LookAt Activation
-      // if(manager.getViewer().id == "CardboardV2")
-      //Removed V1 Support for now
-      return;
 
       //Do we look at the object we activated just before
       if(intersectsClean === eventObject)
@@ -559,13 +508,13 @@ var Viewer = function(){
   function sortIntersects(_intersects){
 
     for(var y = 0; y < _intersects.length; y++){
-
       //Don't get crosshair and MoveToObjects
       if( !_intersects[y].object.position.equals(camera.position)){
-        if(rayStart[ _intersects[y].object.uuid] )
+        if(rayStart[ _intersects[y].object.uuid] ){
           return _intersects[y].object;
-        else
-          return null;   
+        }else{
+          return null; 
+        }  
       }
     }
     return null;
@@ -576,6 +525,9 @@ var Viewer = function(){
     lookAtTime = 0.0;
     tempLookAtObject = null;
     resetObject = null;
+
+    TweenMax.to(crossModifier, 0.3, {scale:1.0});
+    TweenMax.to(crossHairObj.material, 0.3, {opacity:1.0});
 
     if(eventObject !== null)
       resetObject = eventObject;
@@ -593,19 +545,19 @@ var Viewer = function(){
   //gets called on manager change mode
   function changeCall(){
 
+    if(crossHairObj !== null)
+      crossHairObj.visible = (scope.manager.mode == 3) ? true : false;
+
   }
 
   // Request animation frame loop function
   function animate( time ) {
 
-    // console.log( scope.useCrossHair);
-
-
     //Get frame delta time
     frameDelta = (time-prevTime)/1000; // formated to seconds
 
     //Raycaster Update
-    if (scope.manager.isVRCompatible)
+    if (scope.manager.isVRCompatible && scope.manager.mode === 3)
       raycasting();
 
     // Update VR headset position and apply to camera.
@@ -620,7 +572,7 @@ var Viewer = function(){
     dispatch( events.update, { time: time, delta: time - prevTime } );
 
     //If an object get touched/clicked do it's update function
-    if(scope.manager.mode === 3 && eventObject !== null) // manager.getViewer().id !== "CardboardV1"
+    if(eventObject !== null) // manager.getViewer().id !== "CardboardV1"
       dispatch( rayUpdate[ eventObject.uuid ] );
 
     // Render the scene through the manager.
@@ -653,7 +605,7 @@ var Viewer = function(){
       raycaster.setFromCamera( mouse, camera );
     }
 
-    var _mouseIntersects = raycaster.intersectObjects( scope.scene.children, true );
+    var _mouseIntersects = raycaster.intersectObjects( rayObjects );//scope.scene.children, true );
     var _sortedObj = sortIntersects(_mouseIntersects);
 
     if(_sortedObj === null){
@@ -813,20 +765,43 @@ var Viewer = function(){
 
   }
 
-  ///////////////////////
-  //Code accessible functions
-  ///////////////////////
-  this.crossHairScaling = function(_dir){
-    if(scope.manager.mode == 3){
-      if(_dir){
-        TweenMax.to(".Absolute-Center", 0.1, {className:"+=Absolute-Center-Big"});
-        TweenMax.to(".Absolute-Center-Loader", maxLookTime, {opacity:1});
-      }else{
-        TweenMax.to(".Absolute-Center", 0.1, {className:"-=Absolute-Center-Big"});
-        TweenMax.to(".Absolute-Center-Loader", 0.1, {opacity:0});
+  //Exit to another website
+  this.exit = function(_url){
+
+    xhrLoader.crossOrigin = '';
+
+    var _split = _url.split('/');
+
+    var url;
+    var found = false;
+
+    for(var i = 0; i < _split.length; i++){
+      if(_split[i] == "embed" || _split[i] == "projects" || _split[i] == "viewer"){
+        url = BASE_URL + '/api/v1/entry/' + _split[i+1] + '/?format=json';
+        found = true;
+        break;
       }
     }
+
+    if(!found){
+      console.error("Trying to jump to a fake url: " + _url);
+      return;
+    }
+
+    xhrLoader.load( url, function ( text ) {
+
+      var _json = JSON.parse(text);
+
+      transitionObject.position.copy(scope.camera.position);
+      scope.scene.add( transitionObject );
+
+      TweenMax.to(transitionObject.material, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
+      TweenMax.to('#loader', 0.3, {opacity:1});
+
+
+    } );
   };
+
 
   ///////////////////////
   //Fallback & Mobile - Functions
