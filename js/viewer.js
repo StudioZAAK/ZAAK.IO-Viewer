@@ -196,8 +196,8 @@ var Viewer = function(){
     var quality = 0.5;
     if(json.project.quality !== undefined){
       quality = json.project.quality;
-      WebVRConfig.BUFFER_SCALE = quality;
     }
+    WebVRConfig.BUFFER_SCALE = quality;
 
     // Create a VR manager helper to enter and exit VR mode.
     var params = {

@@ -1451,8 +1451,6 @@ function CardboardDistorter(gl) {
 
   this.bufferScale = WebVRConfig.BUFFER_SCALE;
 
-  console.log(this.bufferScale);
-
   this.bufferWidth = gl.drawingBufferWidth;
   this.bufferHeight = gl.drawingBufferHeight;
 
@@ -1631,7 +1629,8 @@ CardboardDistorter.prototype.patch = function() {
   var canvas = this.gl.canvas;
   var gl = this.gl;
 
-  if (!Util.isIOS()) {
+
+  // if (!Util.isIOS()) {
     canvas.width = Util.getScreenWidth() * this.bufferScale;
     canvas.height = Util.getScreenHeight() * this.bufferScale;
 
@@ -1658,7 +1657,7 @@ CardboardDistorter.prototype.patch = function() {
         self.onResize();
       }
     });
-  }
+  // }
 
   this.lastBoundFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
