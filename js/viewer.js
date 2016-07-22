@@ -542,7 +542,7 @@ var Viewer = function(){
     resetObject = null;
 
     TweenMax.to(crossModifier, 0.3, {scale:1.0});
-    TweenMax.to(scopecrossHairObj.material, 0.3, {opacity:1.0});
+    TweenMax.to(scope.crossHairObj.material, 0.3, {opacity:1.0});
 
     if(eventObject !== null)
       resetObject = eventObject;
@@ -815,6 +815,11 @@ var Viewer = function(){
 
 
     } );
+  };
+
+  this.changeControls = function(){
+
+
   };
 
 
