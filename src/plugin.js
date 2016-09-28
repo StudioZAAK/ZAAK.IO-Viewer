@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All Rights Reserved.
+ * Copyright 2016 ZAAK GmbH All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 
-var ZAAKPlugins = require('./skyboxes.js');
+var skybox = require('./plugins/skyboxes.js');
+var spriteAnim = require('./plugins/spriteanimator.js');
 
-window.ZAAKPlugins = ZAAKPlugins;
-
-
-
-// console.log(window.Viewer);
+// window.ZAAKPlugins = ZAAKPlugins;
 

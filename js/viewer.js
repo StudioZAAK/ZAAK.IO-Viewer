@@ -194,6 +194,7 @@ var Viewer = function(){
       scope.useCrossHair = json.project.crosshair;
     }
 
+    //Stop WebVRManager
     var quality = 0.5;
     if(json.project.quality !== undefined){
       quality = json.project.quality;

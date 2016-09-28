@@ -8,7 +8,48 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="css/style.css">
+<style>
 
+      #blocker {
+
+        position: absolute;
+
+        width: 100%;
+        height: 100%;
+
+        background-color: rgba(0,0,0,0.5);
+
+      }
+
+      #instructions {
+
+        width: 100%;
+        height: 100%;
+
+        display: -webkit-box;
+        display: -moz-box;
+        display: box;
+
+        -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
+        box-orient: horizontal;
+
+        -webkit-box-pack: center;
+        -moz-box-pack: center;
+        box-pack: center;
+
+        -webkit-box-align: center;
+        -moz-box-align: center;
+        box-align: center;
+
+        color: #ffffff;
+        text-align: center;
+
+        cursor: pointer;
+
+      }
+
+    </style>
 
 </head>
 <body>
@@ -48,6 +89,7 @@
 
 
 
+
 </body>
 <script>
 
@@ -61,7 +103,7 @@ WebVRConfig = {
    * webvr-polyfill configuration
    */
   // Forces availability of VR mode.
-  // FORCE_ENABLE_VR: true, // Default: false.
+  //FORCE_ENABLE_VR: true, // Default: false.
   // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
   //K_FILTER: 0.98, // Default: 0.98.
   // How far into the future to predict during fast motion.
@@ -97,13 +139,14 @@ WebVRConfig = {
  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script> 
 <script src="js/viewer.js"></script>
 <script src="js/OrbitControls.js"></script>
+<script src="js/PointerLockControls.js"></script>
 
 
 <!-- plugins -->
 <script src="build/plugins.js"></script>
-<!-- <script src="src/plugins/skyboxes.js"></script>
-<script src="src/plugins//ManualAdd.js"></script>
-<script src="src/plugins//SpriteAnimator.js"></script> -->
+<script src="src/plugins/skyboxes.js"></script>
+<!-- <script src="src/plugins//ManualAdd.js"></script> -->
+<script src="src/plugins/SpriteAnimator.js"></script>
 
 <!-- Trash ? -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js
@@ -120,8 +163,8 @@ WebVRConfig = {
 
   var BASE_URL = 'http://zaak.io';
 
-  // viewer.exit("http://beta.zaak.io/editor/projects/ae8a1360-8183-44bd-b0dd-e734345d46b5/");
-  viewer.loadJSON("scenes/flying.json");
+  viewer.exit("http://zaak.io/editor/projects/ae8a1360-8183-44bd-b0dd-e734345d46b5/");
+  // viewer.loadJSON("scenes/jumptst.json");
   // viewer.startScene(jumping);
 
 </script>
