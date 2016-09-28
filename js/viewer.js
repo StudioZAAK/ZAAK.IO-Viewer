@@ -108,7 +108,10 @@ var Viewer = function(){
 
     //Scene setup
     //Stop WebVRManager
-    // var quality = 0.5;
+    var quality = 0.8;
+
+    if(iOS() )
+      quality = 0.5;
     // if(json.project.quality !== undefined){
     //   quality = json.project.quality;
     // }
@@ -118,7 +121,7 @@ var Viewer = function(){
     var params = {
       hideButton: false, // Default: false.
       isUndistorted: false, // Default: false.
-      BUFFER_SCALE: 0.5//quality
+      BUFFER_SCALE: quality
     };
 
     scope.manager = new WebVRManager(renderer, effect, params);
@@ -244,6 +247,10 @@ var Viewer = function(){
     //Add camera once a new scene is added
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
+    //If your on mobile
+    if(isMobile)
+      camera.rotation.set(0,90,0);
+
     //Add AudioListener
     listener = new THREE.AudioListener();
     listener.name = 'Listener';
@@ -253,8 +260,6 @@ var Viewer = function(){
     controls = new THREE.VRControls(camera);
 
     scope.controls = controls;
-
-
 
     // Apply VR stereo rendering to renderer.
     effect = new THREE.VREffect(renderer);
@@ -307,6 +312,9 @@ var Viewer = function(){
 
     var scriptWrapParams = 'player,renderer,scene,camera,webvr,crosshair';
     var scriptWrapResultObj = {};
+
+    //Unload all old rayObjects
+    rayObjects = [];
 
     for ( var eventKey in events ) {
 
@@ -586,7 +594,7 @@ var Viewer = function(){
   //gets called on manager change mode
   function changeCall(){
 
-    if(scope.crossHairObj !== null)
+    if(scope.crossHairObj !== null && scope.crossHairObj !== undefined)
       scope.crossHairObj.visible = (scope.manager.mode == 3) ? true : false;
 
   }
