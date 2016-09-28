@@ -123,11 +123,7 @@ var Viewer = function(){
 
     scope.manager = new WebVRManager(renderer, effect, params);
 
-
-
     scope.manager.on('modechange', changeCall);
-
-
 
   }
 
@@ -160,6 +156,8 @@ var Viewer = function(){
   };
 
   this.unloadProject = function(){
+
+    controls.resetPose();
 
     scope.camera.position.set(0,0,0);
     scope.scene = null;
@@ -215,28 +213,6 @@ var Viewer = function(){
       scope.useCrossHair = json.project.crosshair;
     }
 
-    // //Stop WebVRManager
-    // var quality = 0.5;
-    // if(json.project.quality !== undefined){
-    //   quality = json.project.quality;
-    // }
-    // WebVRConfig.BUFFER_SCALE = quality;
-
-    // // Create a VR manager helper to enter and exit VR mode.
-    // var params = {
-    //   hideButton: false, // Default: false.
-    //   isUndistorted: false, // Default: false.
-    //   BUFFER_SCALE: quality
-    // };
-
-    // scope.manager = new WebVRManager(renderer, effect, params);
-
-
-
-    // scope.manager.on('modechange', changeCall);
-
-    // console.log(scope.manager);
-
     play();
 
     for (var property in this.allPlugins) {
@@ -273,11 +249,12 @@ var Viewer = function(){
     listener.name = 'Listener';
     camera.add( listener );
 
-    scope.camera = camera;
-
     // Apply VR headset positional data to camera.
     controls = new THREE.VRControls(camera);
+
     scope.controls = controls;
+
+
 
     // Apply VR stereo rendering to renderer.
     effect = new THREE.VREffect(renderer);
@@ -296,6 +273,8 @@ var Viewer = function(){
     camera.add(scope.crossHairObj);
 
     scope.scene.add(camera);
+
+    scope.camera = camera;
 
     //Add transition
     transitionObject.position.copy(camera.position);
@@ -859,7 +838,6 @@ var Viewer = function(){
 
       transitionObject.position.copy(scope.camera.position);
       scope.scene.add( transitionObject );
-
 
       TweenMax.to(transitionObject.material, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
       TweenMax.to('#loader', 0.3, {opacity:1});
