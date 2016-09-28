@@ -39,10 +39,12 @@ var Viewer = function(){
 
   var rayObjects = [];
   this.crossHairObjects = [];
+  this.crossHairObjectsEvents = [];
   this.crossHairObj;
   var originalScale = 0.6;
   var currentCrossScale = 0.0;
   var crossModifier = { scale: 1.0 };
+  scope.useCrossHair = true;
 
   //is a project loaded
   this.l = false;
@@ -105,7 +107,25 @@ var Viewer = function(){
     unlockAudio(); //IOS only
 
     //Scene setup
+    //Stop WebVRManager
+    // var quality = 0.5;
+    // if(json.project.quality !== undefined){
+    //   quality = json.project.quality;
+    // }
+    // WebVRConfig.BUFFER_SCALE = quality;
 
+    // Create a VR manager helper to enter and exit VR mode.
+    var params = {
+      hideButton: false, // Default: false.
+      isUndistorted: false, // Default: false.
+      BUFFER_SCALE: 0.5//quality
+    };
+
+    scope.manager = new WebVRManager(renderer, effect, params);
+
+
+
+    scope.manager.on('modechange', changeCall);
 
 
 
@@ -191,28 +211,31 @@ var Viewer = function(){
     }
 
     if(json.project.crosshair !== null){
+
       scope.useCrossHair = json.project.crosshair;
     }
 
-    //Stop WebVRManager
-    var quality = 0.5;
-    if(json.project.quality !== undefined){
-      quality = json.project.quality;
-    }
-    WebVRConfig.BUFFER_SCALE = quality;
+    // //Stop WebVRManager
+    // var quality = 0.5;
+    // if(json.project.quality !== undefined){
+    //   quality = json.project.quality;
+    // }
+    // WebVRConfig.BUFFER_SCALE = quality;
 
-    // Create a VR manager helper to enter and exit VR mode.
-    var params = {
-      hideButton: false, // Default: false.
-      isUndistorted: false, // Default: false.
-      BUFFER_SCALE: quality
-    };
+    // // Create a VR manager helper to enter and exit VR mode.
+    // var params = {
+    //   hideButton: false, // Default: false.
+    //   isUndistorted: false, // Default: false.
+    //   BUFFER_SCALE: quality
+    // };
 
-    scope.manager = new WebVRManager(renderer, effect, params);
+    // scope.manager = new WebVRManager(renderer, effect, params);
 
 
 
-    scope.manager.on('modechange', changeCall);
+    // scope.manager.on('modechange', changeCall);
+
+    // console.log(scope.manager);
 
     play();
 
@@ -236,9 +259,9 @@ var Viewer = function(){
   function setScene(_scene){
 
     scope.scene = _scene;
-    
-    //Add crossHair raycasting targets
-    scope.crossHairObjects = _scene.children;
+
+     //Add crossHair raycasting targets so it only raycasts to objects that can actually
+    scope.crossHairObjects = scope.scene.children;//_scene.children;
 
     //Manual Add
 
@@ -250,8 +273,11 @@ var Viewer = function(){
     listener.name = 'Listener';
     camera.add( listener );
 
+    scope.camera = camera;
+
     // Apply VR headset positional data to camera.
     controls = new THREE.VRControls(camera);
+    scope.controls = controls;
 
     // Apply VR stereo rendering to renderer.
     effect = new THREE.VREffect(renderer);
@@ -265,6 +291,7 @@ var Viewer = function(){
       transparent: true
     } ) );
     scope.crossHairObj.name = "crossHair";
+    scope.crossHairObj.renderOrder = 0;
 
     camera.add(scope.crossHairObj);
 
@@ -347,10 +374,14 @@ var Viewer = function(){
             continue;
 
           }
+
+            //Add crossHair raycasting targets so it only raycasts to objects that can actually
+          // scope.crossHairObjects = _scene.children;
           
           switch(functions[ name ].name){
 
             case "rayStart":
+              scope.crossHairObjectsEvents.push( object );
               rayStart[object.uuid].push(functions[ name ].bind( object ) );
             break;
 
@@ -363,10 +394,12 @@ var Viewer = function(){
             break;
 
             case "rayHover": // pc only
+              scope.crossHairObjectsEvents.push( object );
               rayHover[object.uuid].push(functions[ name ].bind( object ) );
             break;
 
             case "rayHoverStart": // pc only
+              scope.crossHairObjectsEvents.push( object );
               rayHoverStart[object.uuid].push(functions[ name ].bind( object ) );
             break;
 
@@ -413,38 +446,50 @@ var Viewer = function(){
   ///////////////////////
   //Runtime - Functions
   ///////////////////////
+  function crossHairAnim(){
+      
+      //Set ray to forward vector from the camera
+      var vector = new THREE.Vector3( 0, 0, -1 );
+      vector.applyQuaternion( camera.quaternion );
+
+      raycaster.set( camera.position, vector.normalize() );
+
+      //Crosshair
+      var allIntersects = raycaster.intersectObjects( scope.crossHairObjects );//scope.crossHairObjects );
+
+        var zDistance = 100.0;
+
+      if(allIntersects.length > 0){
+        for(var i = 0; i < allIntersects.length; i++){ // -1 to exclude 
+
+            //allIntersects[i].type !== "Sprite" &&
+            if(allIntersects[i].object.type !== "Sprite" && allIntersects[i].object.name !== "crossHair" && allIntersects[i].distance > 0.2){
+
+              zDistance = allIntersects[i].distance * 0.95;
+
+              // var test = allIntersects[i].point;
+              // console.log(allIntersects[i].point);
+              break;
+            
+          }
+        }
+      }
+
+      // console.l¥og(zDistance);
+        
+      var vec = new THREE.Vector3( 0,0,-zDistance );
+
+      scope.crossHairObj.position.copy( vec );
+
+      currentCrossScale = originalScale*zDistance * crossModifier.scale;
+      scope.crossHairObj.scale.set(currentCrossScale,currentCrossScale,currentCrossScale);
+  }
+
   function raycasting(){
 
     //Set ray to forward vector from the camera
     var vector = new THREE.Vector3( 0, 0, -1 );
     vector.applyQuaternion( camera.quaternion );
-
-    raycaster.set( camera.position, vector.normalize() );
-
-    //Crosshair
-    var allIntersects = raycaster.intersectObjects( scope.crossHairObjects );
-
-      var zDistance = 100.0;
-
-    if(allIntersects.length > 0){
-      for(var i = 0; i < allIntersects.length; i++){ // -1 to exclude 
-
-        if(allIntersects[i].object.name !== "crossHair" && allIntersects[i].distance > 0.0){
-
-          zDistance = allIntersects[i].distance * 0.95;
-
-          break;
-        }
-      }
-    }
-      
-    var vec = new THREE.Vector3( 0,0,-zDistance);
-
-    scope.crossHairObj.position.copy( vec );
-
-    currentCrossScale = originalScale*zDistance * crossModifier.scale;
-    scope.crossHairObj.scale.set(currentCrossScale,currentCrossScale,currentCrossScale);
-    
 
     raycaster.set( camera.position, vector.normalize() );
 
@@ -501,6 +546,7 @@ var Viewer = function(){
           if(rayStart[ tempLookAtObject.uuid ]){
             dispatch( rayStart[ tempLookAtObject.uuid ] );
             eventObject = tempLookAtObject;
+            console.log("event");
           }
 
           lookAtTime = 0.0;
@@ -575,6 +621,9 @@ var Viewer = function(){
     //Raycaster Update
     if (scope.manager.isVRCompatible && scope.manager.mode === 3)
       raycasting();
+
+    if(scope.useCrossHair && scope.manager.mode === 3)
+      crossHairAnim();
 
     // Update VR headset position and apply to camera.
     controls.update();
@@ -810,6 +859,7 @@ var Viewer = function(){
 
       transitionObject.position.copy(scope.camera.position);
       scope.scene.add( transitionObject );
+
 
       TweenMax.to(transitionObject.material, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
       TweenMax.to('#loader', 0.3, {opacity:1});
