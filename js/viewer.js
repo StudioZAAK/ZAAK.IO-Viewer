@@ -47,7 +47,7 @@ var Viewer = function(){
   scope.useCrossHair = true;
 
   //is a project loaded
-  this.l = false;
+  var loaded = false;
 
   var transitionObject; 
 
@@ -97,8 +97,9 @@ var Viewer = function(){
   this.controls = controls;
   this.camera = camera;
   this.isMobile = isMobile;
-  this.allPlugins = {};
-  // this.manager;
+  //Unnessecary atm
+  var allPlugins = {};
+ 
 
   startViewer();
 
@@ -139,7 +140,7 @@ var Viewer = function(){
 
     xhrLoader.load( file, function ( text ) {
 
-      scope.l = true;
+      loaded = true;
       scope.startScene( JSON.parse(text) );
 
     } );
@@ -148,7 +149,7 @@ var Viewer = function(){
   this.loadProject = function( uuid ){
 
     //Unload the currentProject
-    if(scope.l)
+    if(loaded)
       scope.unloadProject();
 
     //Load new project
@@ -162,7 +163,7 @@ var Viewer = function(){
 
     controls.resetPose();
 
-    scope.camera.position.set(0,0,0);
+    camera.position.set(0,0,0);
     scope.scene = null;
 
     document.removeEventListener( 'keydown', onDocumentKeyDown );
@@ -278,8 +279,6 @@ var Viewer = function(){
     camera.add(scope.crossHairObj);
 
     scope.scene.add(camera);
-
-    scope.camera = camera;
 
     //Add transition
     transitionObject.position.copy(camera.position);
@@ -421,10 +420,11 @@ var Viewer = function(){
 
     request = requestAnimationFrame( animate );
 
-    TweenMax.to(transitionObject.material, 1.0, {opacity:0, onComplete:scope.fadeComplete});
+    TweenMax.to(transitionObject.material, 1.0, {opacity:0, onComplete:fadeComplete});
   }
 
-  this.fadeComplete = function(){
+  //After a scene is fully loaded fade the transitionObject out.
+  function fadeComplete (){
     scope.scene.remove(transitionObject);
     TweenMax.to('#loader', 0.4, {opacity:0});
 
@@ -844,7 +844,7 @@ var Viewer = function(){
 
       var _json = JSON.parse(text);
 
-      transitionObject.position.copy(scope.camera.position);
+      transitionObject.position.copy(camera.position);
       scope.scene.add( transitionObject );
 
       TweenMax.to(transitionObject.material, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
