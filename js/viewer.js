@@ -69,7 +69,7 @@ var Viewer = function(){
   }
 
   //Setup three.js WebGL renderer
-  renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true});
+  renderer = new THREE.WebGLRenderer({ antialias: false});//, preserveDrawingBuffer: true});
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0xFFFFFF);
 
@@ -629,6 +629,8 @@ var Viewer = function(){
 
     // Render the scene through the manager.
     scope.manager.render(scope.scene, camera, time);
+    effect.render(scope.scene, camera);
+
 
     prevTime = time; 
 
@@ -945,15 +947,14 @@ var Viewer = function(){
     listener.setMasterVolume(0.01);
   }; 
 
-  window.addEventListener('resize', onResize, false);
-  window.addEventListener('vrdisplaypresentchange', onResize, true);
+  window.addEventListener('resize', onResize, true);
+  // window.addEventListener('vrdisplaypresentchange', onResize, true);
 
   // Handle window resizes
   function onResize() {
+    effect.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
-    effect.setSize(window.innerWidth, window.innerHeight);
   }
 
   var display;

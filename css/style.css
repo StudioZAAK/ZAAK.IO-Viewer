@@ -1,4 +1,4 @@
-body {
+body,html {
   /*width: 100%;
   height: 100%;
   background-color: black;
@@ -8,7 +8,7 @@ body {
   overflow: hidden;
   text-align: center;
   border:none;*/
-  color:white;
+/*  color:white;
   background-color: white;
   margin: 0;
   overflow: hidden;
@@ -16,34 +16,19 @@ body {
   left:0;
   right:0;
   bottom:0;
+  */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-iframe {
-    display: block;       /* iframes are inline by default */
-    background: #000;
-    border: none;         /* Reset default border */
-    height: 100vh;        /* Viewport-relative units */
-    width: 100vw;
-}
-
-*:-webkit-full-screen {
-  position:absolute;
-  top:0; 
-  right:0; 
-  bottom:0; 
-  left:0;
-  margin:0;
-  z-index: 99999998 !important;
-  box-sizing:border-box;
-  width:100%;
-  height:100%;
-  object-fit:contain;
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #transition {
@@ -55,7 +40,30 @@ iframe {
   z-index:99999999;
 }
 
-#framer{
+/* iCont is the <div> that holds the iframe */
+.iCont {
+  position:absolute;
+  top:0;
+  bottom:0;
+  width: 100%;
+  height:auto;
+  background:#222;
+}
+
+/* iStyle is the css for the iframe styling */
+.iStyle {
+  width: 1px;
+  min-width: 100%;
+  *width: 100%;
+  height: 1px;
+  min-height: 100%;
+  *height: 100%;
+  overflow:hidden;
+  border:none;
+  opacity: 1;
+}
+
+/*#framer{
   border:none;
   overflow:hidden;
   position: absolute;
@@ -66,7 +74,7 @@ iframe {
   left:0;
   right:0;
   bottom:0;
-}
+}*/
 
 .logo {    
   position: absolute;
@@ -108,13 +116,13 @@ iframe {
   z-index: 1;
 }
 
-#crosshair {
+/*#crosshair {
   display: none;
   z-index: 2147483647;
-}
+}*/
 
 
-.left-half {
+/*.left-half {
   background-color: transparent;
   position: absolute;
   left: 0px;
@@ -128,7 +136,7 @@ iframe {
   right: 0px;
   width: 52%;
   height: 100%;
-}
+}*/
 
 .left-halfLoader {
   background-color: transparent;

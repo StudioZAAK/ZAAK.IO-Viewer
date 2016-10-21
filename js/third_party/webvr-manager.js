@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.WebVRManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,8 @@ function ButtonManager(opt_root) {
   var root = opt_root || document.body;
   this.loadIcons_();
 
+
+
   // Make the fullscreen button.
   var fsButton = this.createButton();
   fsButton.src = this.ICONS.fullscreen;
@@ -43,7 +45,7 @@ function ButtonManager(opt_root) {
   vrButton.title = 'Virtual reality mode';
   var s = vrButton.style;
   s.bottom = 0;
-  s.right = (!Util.isIOS() ? '48px' : '0px');//'48px';
+  s.right = (Util.isIOS() ? 0 : '48px');;
   vrButton.addEventListener('click', this.createClickHandler_('vr'));
   root.appendChild(vrButton);
   this.vrButton = vrButton;
@@ -71,6 +73,7 @@ ButtonManager.prototype.createButton = function() {
   s.zIndex = 1;
   s.display = 'none';
   s.boxSizing = 'content-box';
+  s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(0,0,0,1))';
 
   // Prevent button from being selected and dragged.
   button.draggable = false;
@@ -80,10 +83,10 @@ ButtonManager.prototype.createButton = function() {
 
   // Style it on hover.
   button.addEventListener('mouseenter', function(e) {
-    s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(255,255,255,1))';
+    // s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(255,255,255,1))';
   });
   button.addEventListener('mouseleave', function(e) {
-    s.filter = s.webkitFilter = '';
+    // s.filter = s.webkitFilter = '';
   });
   return button;
 };
@@ -93,18 +96,16 @@ ButtonManager.prototype.setMode = function(mode, isVRCompatible) {
   if (!this.isVisible) {
     return;
   }
-
-  console.log(Util.isIOS());
   switch (mode) {
     case Modes.NORMAL:
-      this.fsButton.style.display = (!Util.isIOS() ? 'block' : 'none');
+      this.fsButton.style.display = (Util.isIOS() ? 'none' : 'block');
       this.fsButton.src = this.ICONS.fullscreen;
       this.vrButton.style.display = (isVRCompatible ? 'block' : 'none');
       break;
     case Modes.MAGIC_WINDOW:
-      this.fsButton.style.display = (!Util.isIOS() ? 'block' : 'none');
+      this.fsButton.style.display = 'block';
       this.fsButton.src = this.ICONS.exitFullscreen;
-      this.vrButton.style.display = (isVRCompatible ? 'block' : 'none');
+      this.vrButton.style.display = 'none';
       break;
     case Modes.VR:
       this.fsButton.style.display = 'none';
@@ -145,7 +146,7 @@ ButtonManager.prototype.loadIcons_ = function() {
 
 module.exports = ButtonManager;
 
-},{"./emitter.js":2,"./modes.js":4,"./util.js":5}],2:[function(_dereq_,module,exports){
+},{"./emitter.js":2,"./modes.js":3,"./util.js":4}],2:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -205,27 +206,6 @@ module.exports = Emitter;
  * limitations under the License.
  */
 
-var WebVRManager = _dereq_('./webvr-manager.js');
-
-window.WebVRConfig = window.WebVRConfig || {};
-window.WebVRManager = WebVRManager;
-
-},{"./webvr-manager.js":6}],4:[function(_dereq_,module,exports){
-/*
- * Copyright 2015 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 var Modes = {
   UNKNOWN: 0,
   // Not fullscreen, just tracking.
@@ -238,7 +218,7 @@ var Modes = {
 
 module.exports = Modes;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,7 +271,7 @@ Util.appendQueryParameter = function(url, key, value) {
 
 // From http://goo.gl/4WX3tg
 Util.getQueryParameter = function(name) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
       results = regex.exec(location.search);
   return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
@@ -311,39 +291,9 @@ Util.getScreenHeight = function() {
       window.devicePixelRatio;
 };
 
-/**
- * Utility to convert the projection matrix to a vector accepted by the shader.
- *
- * @param {Object} opt_params A rectangle to scale this vector by.
- */
-Util.projectionMatrixToVector_ = function(matrix, opt_params) {
-  var params = opt_params || {};
-  var xScale = params.xScale || 1;
-  var yScale = params.yScale || 1;
-  var xTrans = params.xTrans || 0;
-  var yTrans = params.yTrans || 0;
-
-  var elements = matrix.elements;
-  var vec = new THREE.Vector4();
-  vec.set(elements[4*0 + 0] * xScale,
-          elements[4*1 + 1] * yScale,
-          elements[4*2 + 0] - 1 - xTrans,
-          elements[4*2 + 1] - 1 - yTrans).divideScalar(2);
-  return vec;
-};
-
-Util.leftProjectionVectorToRight_ = function(left) {
-  //projectionLeft + vec4(0.0, 0.0, 1.0, 0.0)) * vec4(1.0, 1.0, -1.0, 1.0);
-  var out = new THREE.Vector4(0, 0, 1, 0);
-  out.add(left); // out = left + (0, 0, 1, 0).
-  out.z *= -1; // Flip z.
-
-  return out;
-};
-
 module.exports = Util;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 /*
  * Copyright 2015 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -462,6 +412,18 @@ WebVRManager.prototype.setVRCompatibleOverride = function(isVRCompatible) {
   this.button.setMode(this.mode, this.isVRCompatible);
 };
 
+WebVRManager.prototype.setFullscreenCallback = function(callback) {
+  this.fullscreenCallback = callback;
+};
+
+WebVRManager.prototype.setVRCallback = function(callback) {
+  this.vrCallback = callback;
+};
+
+WebVRManager.prototype.setExitFullscreenCallback = function(callback) {
+  this.exitFullscreenCallback = callback;
+}
+
 /**
  * Promise returns true if there is at least one HMD device available.
  */
@@ -487,10 +449,10 @@ WebVRManager.prototype.getDeviceByType_ = function(type) {
  * Helper for entering VR mode.
  */
 WebVRManager.prototype.enterVRMode_ = function() {
-  this.hmd.requestPresent({
+  this.hmd.requestPresent([{
     source: this.renderer.domElement,
     predistorted: this.predistorted
-  });
+  }]);
 };
 
 WebVRManager.prototype.setMode_ = function(mode) {
@@ -499,7 +461,7 @@ WebVRManager.prototype.setMode_ = function(mode) {
     console.warn('Not changing modes, already in %s', mode);
     return;
   }
-  console.log('Mode change: %s => %s', this.mode, mode);
+  // console.log('Mode change: %s => %s', this.mode, mode);
   this.mode = mode;
   this.button.setMode(mode, this.isVRCompatible);
 
@@ -516,11 +478,15 @@ WebVRManager.prototype.onFSClick_ = function() {
       // TODO: Remove this hack if/when iOS gets real fullscreen mode.
       // If this is an iframe on iOS, break out and open in no_fullscreen mode.
       if (Util.isIOS() && Util.isIFrame()) {
-        var url = window.location.href;
-        url = Util.appendQueryParameter(url, 'no_fullscreen', 'true');
-        url = Util.appendQueryParameter(url, 'start_mode', Modes.MAGIC_WINDOW);
-        top.location.href = url;
-        return;
+        if (this.fullscreenCallback) {
+          this.fullscreenCallback();
+        } else {
+          var url = window.location.href;
+          url = Util.appendQueryParameter(url, 'no_fullscreen', 'true');
+          url = Util.appendQueryParameter(url, 'start_mode', Modes.MAGIC_WINDOW);
+          top.location.href = url;
+          return;
+        }
       }
       this.setMode_(Modes.MAGIC_WINDOW);
       this.requestFullscreen_();
@@ -529,6 +495,9 @@ WebVRManager.prototype.onFSClick_ = function() {
       if (this.isFullscreenDisabled) {
         window.history.back();
         return;
+      }
+      if (this.exitFullscreenCallback) {
+        this.exitFullscreenCallback();
       }
       this.setMode_(Modes.NORMAL);
       this.exitFullscreen_();
@@ -543,11 +512,15 @@ WebVRManager.prototype.onVRClick_ = function() {
   // TODO: Remove this hack when iOS has fullscreen mode.
   // If this is an iframe on iOS, break out and open in no_fullscreen mode.
   if (this.mode == Modes.NORMAL && Util.isIOS() && Util.isIFrame()) {
-    var url = window.location.href;
-    url = Util.appendQueryParameter(url, 'no_fullscreen', 'true');
-    url = Util.appendQueryParameter(url, 'start_mode', Modes.VR);
-    top.location.href = url;
-    return;
+    if (this.vrCallback) {
+      this.vrCallback();
+    } else {
+      var url = window.location.href;
+      url = Util.appendQueryParameter(url, 'no_fullscreen', 'true');
+      url = Util.appendQueryParameter(url, 'start_mode', Modes.VR);
+      top.location.href = url;
+      return;
+    }
   }
   this.enterVRMode_();
 };
@@ -601,4 +574,5 @@ WebVRManager.prototype.onFullscreenChange_ = function(e) {
 
 module.exports = WebVRManager;
 
-},{"./button-manager.js":1,"./emitter.js":2,"./modes.js":4,"./util.js":5}]},{},[3]);
+},{"./button-manager.js":1,"./emitter.js":2,"./modes.js":3,"./util.js":4}]},{},[5])(5)
+});

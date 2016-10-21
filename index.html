@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <title>ZAAK IO Viewer</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="css/style.css">
 <style>
 
-      #blocker {
+     /* #blocker {
 
         position: absolute;
 
@@ -47,7 +47,7 @@
 
         cursor: pointer;
 
-      }
+      }*/
 
     </style>
 
@@ -109,7 +109,7 @@ WebVRConfig = {
   // How far into the future to predict during fast motion.
   //PREDICTION_TIME_S: 0.040, // Default: 0.040 (in seconds).
   // Flag to disable touch panner. In case you have your own touch controls
-  //TOUCH_PANNER_DISABLED: true, // Default: false.
+  TOUCH_PANNER_DISABLED: false, // Default: false.
   // Enable yaw panning only, disabling roll and pitch. This can be useful for
   // panoramas with nothing interesting above or below.
   //YAW_ONLY: true, // Default: false.
@@ -118,7 +118,7 @@ WebVRConfig = {
   // Scales the recommended buffer size reported by WebVR, which can improve
   // performance. Making this very small can lower the effective resolution of
   // your scene.
-  // BUFFER_SCALE: 1.0, // default: 1.0
+  BUFFER_SCALE: 1.0, // default: 1.0
   // Allow VRDisplay.submitFrame to change gl bindings, which is more
   // efficient if the application code will re-bind it's resources on the
   // next frame anyway.
@@ -138,21 +138,21 @@ WebVRConfig = {
 <!--<script src="js/third_party/TweenMax.min.js"></script>-->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script> 
 <script src="js/viewer.js"></script>
-<script src="js/OrbitControls.js"></script>
+<!-- <script src="js/OrbitControls.js"></script>
 <script src="js/PointerLockControls.js"></script>
-
+ -->
 
 <!-- plugins -->
-<script src="build/plugins.js"></script>
+<!-- <script src="build/plugins.js"></script>
 <script src="src/plugins/skyboxes.js"></script>
-<!-- <script src="src/plugins//ManualAdd.js"></script> -->
-<script src="src/plugins/SpriteAnimator.js"></script>
+<script src="src/plugins//ManualAdd.js"></script>
+<script src="src/plugins/SpriteAnimator.js"></script> -->
 
 <!-- Trash ? -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js
 "></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js
-"></script>
+"></script> -->
 
 
 
@@ -164,8 +164,8 @@ WebVRConfig = {
   var BASE_URL = 'http://zaak.io';
 // viewer.exit("projects/97acc28c-ea22-4902-8da5-de2c203ea353");
   // viewer.exit("/projects/ae8a1360-8183-44bd-b0dd-e734345d46b5/"); // 
-  // viewer.loadJSON("scenes/switch.json");
-  // viewer.startScene(jumping);
+  viewer.loadJSON("scenes/angeloo.json");
+
 
 </script>
 </html>
