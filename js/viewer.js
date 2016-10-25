@@ -21,6 +21,7 @@ var Viewer = function(){
   var maxLookTime = 1.1;
 
   var prevTime, request; 
+  var running = false;
 
   var frameDelta;
 
@@ -46,6 +47,8 @@ var Viewer = function(){
   var crossModifier = { scale: 1.0 };
   scope.useCrossHair = true;
 
+  var pendingResize = false;
+
   //is a project loaded
   var loaded = false;
 
@@ -69,7 +72,7 @@ var Viewer = function(){
   }
 
   //Setup three.js WebGL renderer
-  renderer = new THREE.WebGLRenderer({ antialias: false});//, preserveDrawingBuffer: true});
+  renderer = new THREE.WebGLRenderer({ antialias: true });//, preserveDrawingBuffer: true});
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0xFFFFFF);
 
@@ -105,24 +108,13 @@ var Viewer = function(){
 
   function startViewer(){
 
-    unlockAudio(); //IOS only
-
-    //Scene setup
-    //Stop WebVRManager
-    var quality = 0.8;
-
-    if(iOS() )
-      quality = 0.5;
-    // if(json.project.quality !== undefined){
-    //   quality = json.project.quality;
-    // }
-    // WebVRConfig.BUFFER_SCALE = quality;
+    unlockAudio(); //IOS onlys
 
     // Create a VR manager helper to enter and exit VR mode.
     var params = {
       hideButton: false, // Default: false.
       isUndistorted: false, // Default: false.
-      BUFFER_SCALE: quality
+      BUFFER_SCALE: 1.0
     };
 
     scope.manager = new WebVRManager(renderer, effect, params);
@@ -135,8 +127,6 @@ var Viewer = function(){
   this.loadJSON = function(file){
 
     xhrLoader.crossOrigin = '';
-
-    console.log(file);
 
     xhrLoader.load( file, function ( text ) {
 
@@ -163,7 +153,7 @@ var Viewer = function(){
 
     controls.resetPose();
 
-    camera.position.set(0,0,0);
+    scope.camera.position.set(0,0,0);
     scope.scene = null;
 
     document.removeEventListener( 'keydown', onDocumentKeyDown );
@@ -177,7 +167,8 @@ var Viewer = function(){
 
     dispatch( events.stop, arguments );
 
-    cancelAnimationFrame( request );
+    pause();
+
 
   };
 
@@ -252,19 +243,22 @@ var Viewer = function(){
     if(isMobile)
       camera.rotation.set(0,90,0);
 
+    scope.camera = camera;
+
     //Add AudioListener
     listener = new THREE.AudioListener();
     listener.name = 'Listener';
-    camera.add( listener );
+    scope.camera.add( listener );
+
 
     // Apply VR headset positional data to camera.
-    controls = new THREE.VRControls(camera);
+    controls = new THREE.VRControls(scope.camera);
 
     scope.controls = controls;
 
     // Apply VR stereo rendering to renderer.
-    effect = new THREE.VREffect(renderer);
-    effect.setSize(window.innerWidth, window.innerHeight);
+    // effect = new THREE.VREffect(renderer);
+    // effect.setSize(window.innerWidth, window.innerHeight);
        
     scope.crossHairObj = new THREE.Mesh( new THREE.RingGeometry( 0.02, 0.04, 16 ), new THREE.MeshBasicMaterial( {
       depthTest:false,
@@ -276,12 +270,12 @@ var Viewer = function(){
     scope.crossHairObj.name = "crossHair";
     scope.crossHairObj.renderOrder = 0;
 
-    camera.add(scope.crossHairObj);
+    scope.camera.add(scope.crossHairObj);
 
-    scope.scene.add(camera);
+    scope.scene.add(scope.camera);
 
     //Add transition
-    transitionObject.position.copy(camera.position);
+    transitionObject.position.copy(scope.camera.position);
     scope.scene.add( transitionObject );
 
   }
@@ -349,7 +343,7 @@ var Viewer = function(){
       for ( var i = 0; i < scripts.length; i ++ ) {
 
         var _script = scripts[ i ];
-        var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, camera, scope.manager, scope.crossHairObj );
+        var functions = ( new Function( scriptWrapParams, _script.source + '\nreturn ' + scriptWrapResult + ';' ).bind( object ) )( scope, renderer, scope.scene, scope.camera, scope.manager, scope.crossHairObj );
         for ( var name in functions ) {
 
           if ( functions[ name ] === undefined ) continue;
@@ -418,7 +412,7 @@ var Viewer = function(){
 
     dispatch( events.start, arguments );
 
-    request = requestAnimationFrame( animate );
+    resume();
 
     TweenMax.to(transitionObject.material, 1.0, {opacity:0, onComplete:fadeComplete});
   }
@@ -437,9 +431,9 @@ var Viewer = function(){
       
       //Set ray to forward vector from the camera
       var vector = new THREE.Vector3( 0, 0, -1 );
-      vector.applyQuaternion( camera.quaternion );
+      vector.applyQuaternion( scope.camera.quaternion );
 
-      raycaster.set( camera.position, vector.normalize() );
+      raycaster.set( scope.camera.position, vector.normalize() );
 
       //Crosshair
       var allIntersects = raycaster.intersectObjects( scope.crossHairObjects );//scope.crossHairObjects );
@@ -454,15 +448,11 @@ var Viewer = function(){
 
               zDistance = allIntersects[i].distance * 0.95;
 
-              // var test = allIntersects[i].point;
-              // console.log(allIntersects[i].point);
               break;
             
           }
         }
       }
-
-      // console.l¥og(zDistance);
         
       var vec = new THREE.Vector3( 0,0,-zDistance );
 
@@ -476,9 +466,9 @@ var Viewer = function(){
 
     //Set ray to forward vector from the camera
     var vector = new THREE.Vector3( 0, 0, -1 );
-    vector.applyQuaternion( camera.quaternion );
+    vector.applyQuaternion( scope.camera.quaternion );
 
-    raycaster.set( camera.position, vector.normalize() );
+    raycaster.set( scope.camera.position, vector.normalize() );
 
     // calculate objects intersecting the picking ray
     var intersects = raycaster.intersectObjects( rayObjects );
@@ -533,7 +523,6 @@ var Viewer = function(){
           if(rayStart[ tempLookAtObject.uuid ]){
             dispatch( rayStart[ tempLookAtObject.uuid ] );
             eventObject = tempLookAtObject;
-            console.log("event");
           }
 
           lookAtTime = 0.0;
@@ -599,6 +588,20 @@ var Viewer = function(){
 
   }
 
+  function pause(){
+
+    running = false;
+
+    cancelAnimationFrame( request );
+  }
+
+  function resume(){
+
+    running = true;
+
+    request = requestAnimationFrame( animate );
+  }
+
   // Request animation frame loop function
   function animate( time ) {
 
@@ -612,8 +615,7 @@ var Viewer = function(){
     if(scope.useCrossHair && scope.manager.mode === 3)
       crossHairAnim();
 
-    // Update VR headset position and apply to camera.
-    controls.update();
+
 
     for (var property in scope.allPlugins) {
       if (scope.allPlugins.hasOwnProperty(property) && typeof scope.allPlugins[property].update === "function")
@@ -627,9 +629,12 @@ var Viewer = function(){
     if(eventObject !== null) // manager.getViewer().id !== "CardboardV1"
       dispatch( rayUpdate[ eventObject.uuid ] );
 
+        // Update VR headset position and apply to camera.
+    controls.update();
+
     // Render the scene through the manager.
-    scope.manager.render(scope.scene, camera, time);
-    effect.render(scope.scene, camera);
+    scope.manager.render(scope.scene, scope.camera, time);
+    //effect.render(scope.scene, camera);
 
 
     prevTime = time; 
@@ -647,16 +652,16 @@ var Viewer = function(){
 
       //Set ray to forward vector from the camera
       var vector = new THREE.Vector3( 0, 0, -1 );
-      vector.applyQuaternion( camera.quaternion );
+      vector.applyQuaternion( scope.camera.quaternion );
 
-      raycaster.set( camera.position, vector.normalize() );
+      raycaster.set( scope.camera.position, vector.normalize() );
 
     }else{
 
       mouse.x = ( _x / window.innerWidth ) * 2 - 1; // todo on pc mouse
       mouse.y = - ( _y / window.innerHeight ) * 2 + 1;
 
-      raycaster.setFromCamera( mouse, camera );
+      raycaster.setFromCamera( mouse, scope.camera );
     }
 
     var _mouseIntersects = raycaster.intersectObjects( rayObjects );//scope.scene.children, true );
@@ -743,6 +748,14 @@ var Viewer = function(){
 
     if (event.keyCode == 90) { // z
       controls.resetSensor();
+    }
+
+    //Debug eventes
+    if(event.keyCode == 80) { // p
+      if(running)
+        pause();
+      else
+        resume();
     }
   }
 
@@ -846,7 +859,7 @@ var Viewer = function(){
 
       var _json = JSON.parse(text);
 
-      transitionObject.position.copy(camera.position);
+      transitionObject.position.copy(scope.camera.position);
       scope.scene.add( transitionObject );
 
       TweenMax.to(transitionObject.material, 0.8, {opacity: 1, onComplete:scope.loadProject, onCompleteParams:[BASE_URL + _json.scenes[0].data + "?v=md5("+_json.modified+")"]}); //onCompleteParams: [subsite]
@@ -947,14 +960,16 @@ var Viewer = function(){
     listener.setMasterVolume(0.01);
   }; 
 
-  window.addEventListener('resize', onResize, true);
-  // window.addEventListener('vrdisplaypresentchange', onResize, true);
+    window.addEventListener('resize', onResize, true);
+  window.addEventListener('vrdisplaypresentchange', onResize, true);
 
   // Handle window resizes
-  function onResize() {
+  function onResize(e) {
+
     effect.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    scope.camera.aspect = window.innerWidth / window.innerHeight;
+    scope.camera.updateProjectionMatrix();
+    
   }
 
   var display;
