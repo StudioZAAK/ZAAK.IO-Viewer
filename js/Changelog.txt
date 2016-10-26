@@ -1,0 +1,25 @@
+26.10.16
+Current Version 
+1.0
+Boilerplate V 
+
+BUGS //////////////////////////////////////
+
+Exit Resize
+- After exit(), landscape jump intoVR resizing issue.
+
+Resize Issue
+- On multiple EnterVR/ExitVR Resizing issues.
+
+IOS Iframe problems
+- Due to the missing fullscreenAPI on Mobile Safari currently exiting VR leaves you on a zaak.io/viewer/uuid page instead of the framed ZAAK.io site
+
+
+Changelog //////////////////////////////////////
+
+- New boilerplate, added hmd support ( Vive, Oculus ), not integrated in ZAAK-Viewer
+- Removed VR-EFFECT reinitialize in setScene(), removed resizing issue
+- Cardboard Rotation prompt leads you now to http://cardboard.zaak.io/
+
+
+Resolved BUGS //////////////////////////////////////

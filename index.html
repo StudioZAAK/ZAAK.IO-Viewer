@@ -102,8 +102,10 @@ WebVRConfig = {
   /**
    * webvr-polyfill configuration
    */
+  //Display rotate instructions on enterVR mode
+  ROTATE_INSTRUCTIONS_DISABLED: true,
   // Forces availability of VR mode.
-  FORCE_ENABLE_VR: true, // Default: false.
+  // FORCE_ENABLE_VR: true, // Default: false.
   // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
   //K_FILTER: 0.98, // Default: 0.98.
   // How far into the future to predict during fast motion.
@@ -164,7 +166,7 @@ WebVRConfig = {
   var BASE_URL = 'http://www.zaak.io';
   // viewer.exit("projects/3ee70a31-52ee-4728-95ac-ba8605460e23");
   // viewer.exit("/projects/3ee70a31-52ee-4728-95ac-ba8605460e23"); // 
-  viewer.loadJSON("scenes/con.json");
+  // viewer.loadJSON("scenes/ray2.json");
 
 
 </script>
