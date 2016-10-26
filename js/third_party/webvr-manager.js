@@ -35,6 +35,7 @@ function ButtonManager(opt_root) {
   var s = fsButton.style;
   s.bottom = 0;
   s.right = 0;
+  s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(0,0,0,1))';
   fsButton.addEventListener('click', this.createClickHandler_('fs'));
   root.appendChild(fsButton);
   this.fsButton = fsButton;
@@ -45,7 +46,8 @@ function ButtonManager(opt_root) {
   vrButton.title = 'Virtual reality mode';
   var s = vrButton.style;
   s.bottom = 0;
-  s.right = (Util.isIOS() ? 0 : '48px');;
+  s.right = (Util.isIOS() ? 0 : '48px');
+  s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(0,0,0,0.5))';
   vrButton.addEventListener('click', this.createClickHandler_('vr'));
   root.appendChild(vrButton);
   this.vrButton = vrButton;
@@ -73,7 +75,7 @@ ButtonManager.prototype.createButton = function() {
   s.zIndex = 1;
   s.display = 'none';
   s.boxSizing = 'content-box';
-  s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(0,0,0,1))';
+  // s.filter = s.webkitFilter = 'drop-shadow(0 0 5px rgba(0,0,0,1))';
 
   // Prevent button from being selected and dragged.
   button.draggable = false;

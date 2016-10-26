@@ -1,0 +1,42 @@
+{% load staticfiles sekizai_tags compress %}<!DOCTYPE html>
+<html>
+<head>
+    <title>ZAAK IO Embed</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    {% addtoblock "css" %}
+        <link rel="stylesheet" href="{% static 'viewer/css/style.css' %}">{% endaddtoblock %}
+    {% render_block "css" postprocessor "compressor.contrib.sekizai.compress" %}
+</head>
+
+<body>
+
+<!-- <div id="framer">
+  <iframe id="myIframe" style = "display: block;border: none;height: 100vh; width: 100vw; float:left; margin-left:0px"; src='menu.html' border='0' width='100vh' height='100vw' scrolling='no' marginheight='0' marginwidth='0' frameborder='0' allowfullscreen='true' webkitallowfullscreen='true' mozallowfullscreen='true' allowtransparency="true"></iframe>
+</div> -->
+
+
+<div class="iCont" id="framer">
+    {% if object %}
+        <iframe id="myIframe" class ="iStyle" src="{% url 'viewer' object.uuid %}" allowfullscreen='true' webkitallowfullscreen='true'
+                mozallowfullscreen='true' allowtransparency='true' scrolling='no'>
+            Your browser doesn't support iframes
+        </iframe>
+    {% else %}
+        <iframe id="myIframe" class ="iStyle" src="{% url 'viewer_manual' %}" allowfullscreen='true' webkitallowfullscreen='true'
+                mozallowfullscreen='true' allowtransparency='true' scrolling='no'>
+            Your browser doesn't support iframes
+        </iframe>
+    {% endif %}
+</div>
+
+
+</body>
+
+
+{% render_block "js" postprocessor "compressor.contrib.sekizai.compress" %}
+
+</html>

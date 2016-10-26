@@ -502,6 +502,7 @@ VRDisplay.prototype.beginPresent_ = function() {
 
 VRDisplay.prototype.endPresent_ = function() {
   // Override to add custom behavior when presentation ends.
+  console.log("get the base main url, pro impossible");
 };
 
 VRDisplay.prototype.submitFrame = function(pose) {

@@ -103,7 +103,7 @@ WebVRConfig = {
    * webvr-polyfill configuration
    */
   // Forces availability of VR mode.
-  // FORCE_ENABLE_VR: true, // Default: false.
+  FORCE_ENABLE_VR: true, // Default: false.
   // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
   //K_FILTER: 0.98, // Default: 0.98.
   // How far into the future to predict during fast motion.
@@ -130,7 +130,7 @@ WebVRConfig = {
 };
 </script>
 <script src="js/third_party/es6-promise.js"></script> 
-<script src="js/third_party/three.js"></script>
+<script src="js/third_party/three.min.js"></script>
 <script src="js/third_party/VRControls.js"></script>
 <script src="js/third_party/VREffect.js"></script>
 <script src="js/third_party/webvr-polyfill.js"></script>
@@ -164,7 +164,7 @@ WebVRConfig = {
   var BASE_URL = 'http://www.zaak.io';
   // viewer.exit("projects/3ee70a31-52ee-4728-95ac-ba8605460e23");
   // viewer.exit("/projects/3ee70a31-52ee-4728-95ac-ba8605460e23"); // 
-  // viewer.loadJSON("scenes/ray2.json");
+  viewer.loadJSON("scenes/con.json");
 
 
 </script>
