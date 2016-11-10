@@ -72,9 +72,11 @@ var Viewer = function(){
   }
 
   //Setup three.js WebGL renderer
-  renderer = new THREE.WebGLRenderer({ antialias: true });//, preserveDrawingBuffer: true});
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true});
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0xFFFFFF);
+
+  this._renderer = renderer;
 
   // Append the canvas element created by the renderer to document body element.
   document.body.appendChild(renderer.domElement);
@@ -752,10 +754,17 @@ var Viewer = function(){
 
     //Debug eventes
     if(event.keyCode == 80) { // p
+
       if(running)
         pause();
       else
         resume();
+    }
+
+    console.log(event.keyCode);
+
+    if(event.keyCode == 73){
+      scope.takeScreenshot(true);
     }
   }
 
@@ -986,12 +995,34 @@ var Viewer = function(){
       }
     });
   }
+};
 
-  this.takeScreenshot = function() {
-    var dataUrl = renderer.domElement.toDataURL('image/png');
+Viewer.prototype = {
+
+  takeScreenshot: function( _save ) {
+
+    _save = ( _save == undefined ) ? false : true;
+
+    var dataUrl = this._renderer.domElement.toDataURL('image/png');
+
+    if( _save ){
+       var link = document.createElement("a");
+      link.download = "ZAAKIO_screenshot.png";
+      link.target = "_blank";
+
+      // Construct the uri
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup the DOM
+      document.body.removeChild(link);
+      delete link;
+
+    }
 
     //if (CARDBOARD_DEBUG) console.debug('SCREENSHOT: ' + dataUrl);
-    return renderer.domElement.toDataURL('image/png');
+    return this._renderer.domElement.toDataURL('image/png');
 
-  };
+  }
 };

@@ -1,7 +1,7 @@
-26.10.16
+10.11.16
 Current Version 
-1.0
-Boilerplate V 
+1.01
+Boilerplate Version 
 
 BUGS //////////////////////////////////////
 
@@ -17,6 +17,11 @@ IOS Iframe problems
 
 Changelog //////////////////////////////////////
 
+10.11.16
+- Fixed black screenshots
+- Added screenshot function when pressing ‘i’, saves png to downloads
+
+26.10.16
 - New boilerplate, added hmd support ( Vive, Oculus ), not integrated in ZAAK-Viewer
 - Removed VR-EFFECT reinitialize in setScene(), removed resizing issue
 - Cardboard Rotation prompt leads you now to http://cardboard.zaak.io/
