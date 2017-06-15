@@ -1,3 +1,4 @@
+//Version 1.0, 1.2.2017
 //ZAAK IO Viewer
 var Viewer = function(){
   'use strict';
@@ -761,7 +762,7 @@ var Viewer = function(){
         resume();
     }
 
-    console.log(event.keyCode);
+    // console.log(event.keyCode);
 
     if(event.keyCode == 73){
       scope.takeScreenshot(true);
@@ -919,7 +920,8 @@ var Viewer = function(){
     var source = listener.context.createBufferSource();
     source.buffer = buffer;
     source.connect(listener.context.destination);
-    source.noteOn(0);
+    // console.log(source);
+    source.start(0);
 
     // by checking the play state after some time, we know if we're really unlocked
     setTimeout(function() {
